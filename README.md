@@ -1,1 +1,1 @@
-# golang-training-2021
+# Golang Training 2021
