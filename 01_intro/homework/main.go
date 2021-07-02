@@ -5,10 +5,8 @@ import (
 	"math"
 )
 
-const pi float64 = 3.1415926535
-
 func getSphereVolume(radius float64) float64 {
-	return 4 * pi * math.Pow(radius, 3.0) / 3
+	return 4 * math.Pi * math.Pow(radius, 3.0) / 3
 }
 
 func main() {
