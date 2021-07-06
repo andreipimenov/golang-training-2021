@@ -10,11 +10,11 @@ func main() {
 	add(x, 10)
 	fmt.Println("After add call", x, len(x), cap(x))
 
-	x = x[:len(x)+1]
-	fmt.Println("After reslicing", x, len(x), cap(x))
+	// x = x[:len(x)+1]
+	// fmt.Println("After reslicing", x, len(x), cap(x))
 
-	add(x, 20)
-	fmt.Println("After second add call", x, len(x), cap(x))
+	// add(x, 20)
+	// fmt.Println("After second add call", x, len(x), cap(x))
 
 	//x = x[:len(x)+1]
 
