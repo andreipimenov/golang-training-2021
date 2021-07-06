@@ -69,5 +69,4 @@ func types() {
 		x = five / three
 		fmt.Printf("%T %v\n", x, x)
 	}
-
 }
