@@ -118,7 +118,6 @@ func (e Expr) Calculate() float64 {
 			}
 			stack.Push(number)
 			i = j - 1
-			fmt.Println("Pushed " + number)
 		}
 		switch char {
 		case '+':
@@ -151,7 +150,6 @@ func main() {
 
 	string_valid, ret_val := e.Validate()
 	if string_valid {
-		fmt.Println(ToPostfix(string(e)))
 		fmt.Println(e.Calculate())
 	} else {
 		fmt.Printf("Validation failed, character '%s' is not allowed. Shutting down.", ret_val)
