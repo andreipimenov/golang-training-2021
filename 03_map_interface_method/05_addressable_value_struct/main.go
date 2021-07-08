@@ -19,7 +19,8 @@ func main() {
 	ds := map[string]Device{ // change Device to *Device to fix compilation error
 		"first": {"666"},
 	}
-	ds["first"].Print()
+	_ = ds
+	// ds["first"].Print()
 
 	v := []Device{
 		{"888"},
