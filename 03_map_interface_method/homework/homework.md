@@ -29,7 +29,7 @@ The following interface should be implemented
 
 ```
 type Calc interface {
-    Calculate(string expression) float64
+    Calculate(expression string) float64
 }
 ```
 
