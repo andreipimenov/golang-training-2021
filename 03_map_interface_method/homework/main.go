@@ -6,38 +6,6 @@ import (
 	"strings"
 )
 
-type Stack struct {
-	top  *Element
-	size int
-}
-
-type Element struct {
-	value interface{}
-	next  *Element
-}
-
-func (s *Stack) Empty() bool {
-	return s.size == 0
-}
-
-func (s *Stack) Top() interface{} {
-	return s.top.value
-}
-
-func (s *Stack) Push(value interface{}) {
-	s.top = &Element{value, s.top}
-	s.size++
-}
-
-func (s *Stack) Pop() (value interface{}) {
-	if s.size > 0 {
-		value, s.top = s.top.value, s.top.next
-		s.size--
-		return
-	}
-	return nil
-}
-
 func Precedence(ch string) int {
 	if ch == "+" || ch == "-" {
 		return 1
@@ -121,26 +89,21 @@ func ToPostfix(s string) string {
 	return strings.TrimSpace(postfix)
 }
 
-func Operation(a int, b int, op string) int {
-	switch op {
-	case "+":
-		return b + a
-	case "-":
-		return b - a
-	case "*":
-		return b * a
-	case "/":
-		return b / a
-	default:
-		return 0
-	}
-}
-
 type Calc interface {
 	Calculate() float64
 }
 
 type Expr string
+
+func (e Expr) Validate() (bool, string) {
+	allowed_symbols := "+-*/0123456789()"
+	for _, char := range e {
+		if !strings.Contains(allowed_symbols, string(char)) {
+			return false, string(char)
+		}
+	}
+	return true, ""
+}
 
 func (e Expr) Calculate() float64 {
 	e = Expr(ToPostfix(string(e)))
@@ -184,8 +147,13 @@ func (e Expr) Calculate() float64 {
 
 func main() {
 	var e Expr
-	e = "22/22-(78*2+2*3)"
+	fmt.Scan(&e)
 
-	fmt.Println(ToPostfix(string(e)))
-	fmt.Println(e.Calculate())
+	string_valid, ret_val := e.Validate()
+	if string_valid {
+		fmt.Println(ToPostfix(string(e)))
+		fmt.Println(e.Calculate())
+	} else {
+		fmt.Printf("Validation failed, character '%s' is not allowed. Shutting down.", ret_val)
+	}
 }
