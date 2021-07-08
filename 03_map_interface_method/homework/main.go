@@ -154,6 +154,8 @@ func (e Expr) Calculate() float64 {
 				number = number + string(e[j])
 			}
 			stack.Push(number)
+			i = j - 1
+			fmt.Println("Pushed " + number)
 		}
 		switch char {
 		case '+':
@@ -182,7 +184,8 @@ func (e Expr) Calculate() float64 {
 
 func main() {
 	var e Expr
-	e = "22*3/(5*4)+2"
+	e = "22/22-(78*2+2*3)"
 
+	fmt.Println(ToPostfix(string(e)))
 	fmt.Println(e.Calculate())
 }
