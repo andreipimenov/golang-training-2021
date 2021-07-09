@@ -97,7 +97,7 @@ func inputValidate(input []byte) (err error) {
 		}
 	}
 	if !operExists {
-		return fmt.Errorf("%v: an expression does not contains any operators", input)
+		return fmt.Errorf("%v: an expression does not contains any operators", string(input))
 	}
 	return
 }
@@ -123,6 +123,11 @@ func main() {
 	input := []byte(strings.Replace(in, " ", "", -1))
 	if input[len(input)-1] == '=' {
 		input = input[0 : len(input)-1]
+	}
+	// Валидируемся и выходим с ошибкой в случае чего
+	if err := inputValidate(input); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 	expression := string(input)
 	// Выводим результат
