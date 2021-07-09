@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/andreipimenov/golang-training-2021/03_map_interface_method/homework/calculator"
+	"github.com/andreipimenov/golang-training-2021/03_map_interface_method/homework/rpn_calculator"
 )
 
 // Функция выводит стрелку, которой обозначаем место неверного символа
@@ -104,7 +104,7 @@ func inputValidate(input []byte) (err error) {
 
 func main() {
 	var in string
-	cal := calculator.NewCalculator()
+	cal := rpn_calculator.NewCalculator()
 
 	// Если есть аргумент, считаем, что это и есть выражение
 	if len(os.Args) > 1 {

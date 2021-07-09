@@ -1,4 +1,4 @@
-package calculator
+package rpn_calculator
 
 import (
 	"strings"
