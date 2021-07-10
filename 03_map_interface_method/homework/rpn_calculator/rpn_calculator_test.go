@@ -52,6 +52,7 @@ func TestCalcRPN(t *testing.T) {
 		"20.1 / 2 - ( 2 + 2 * 3 ) ^ 2": -53.95,
 		"( - 2 ) ^ 2":                  4,
 		"20/2-(2+2*3)":                 2,
+		"14/88=":                       0.1590909090909091,
 	}
 	for k, v := range testData {
 		input := []byte(strings.Replace(k, " ", "", -1))
