@@ -68,15 +68,19 @@ func inputValidate(input []byte) (err error) {
 	// 3.1 Проверяем, что арифметические операторы не идут подряд
 	// 3.2 Проверяем, что выражение не заканчивается оператором
 	// 3.3 А оператор вообще есть?
-	// 3.4 В начале может быть только "-"
+	// 3.4 В начале не может быть оператора, для отрицательных скобки плз
 	operators := make(map[byte]struct{})
 	for _, v := range []byte("+-*/^.") {
 		operators[v] = struct{}{}
 	}
 	for idx, c := range input {
 		if _, isOper := operators[c]; isOper {
-			if idx == 0 && c != '-' {
-				return fmt.Errorf("%v: not '-' operator on the 1st  position\n%v",
+			if idx == 0 && c == '-' {
+				return fmt.Errorf("%v: please use brackets for negative operands\n%v",
+					string(input), getArrowHelp(idx))
+			}
+			if idx == 0 {
+				return fmt.Errorf("%v: operator cannot be on the 1st position\n%v",
 					string(input), getArrowHelp(idx))
 			}
 			if idx == len(input)-1 {
