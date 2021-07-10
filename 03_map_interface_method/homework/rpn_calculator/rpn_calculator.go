@@ -1,15 +1,24 @@
+/*
+	Пакет для парсинга математических выражений и
+	вычисления результата методом приведения к обратной польской записи
+*/
+
 package rpn_calculator
 
 import (
 	"fmt"
 	"math"
+	"reflect"
 	"strconv"
 	"strings"
+
+	stack "github.com/andreipimenov/golang-training-2021/03_map_interface_method/homework/stack"
 )
 
-type Calculator struct {
-	input string
-}
+// Нужна дл доставаний из стэка float64 вместо interface{}
+var floatType = reflect.TypeOf(float64(0))
+
+type Calculator struct{}
 
 func (cal *Calculator) Calculate(expression string) float64 {
 	tokens := splitInput([]byte(expression))
@@ -21,39 +30,15 @@ func NewCalculator() *Calculator {
 	return &Calculator{}
 }
 
-type StringsStack struct {
-	data []string
-	Top  string
-	Len  int
-}
-
-func (s *StringsStack) Push(e string) {
-	s.data = append(s.data, e)
-	s.Top = s.data[len(s.data)-1]
-	s.Len = len(s.data)
-}
-
-func (s *StringsStack) Pop() (string, bool) {
-	if len(s.data) == 1 {
-		last := s.data[len(s.data)-1]
-		s.data = s.data[:len(s.data)-1]
-		s.Len = len(s.data)
-		s.Top = ""
-		return last, true
+// Функция преобразует interface{} из стэка в float64 для вычислений
+func getFloat(unk interface{}) (float64, error) {
+	v := reflect.ValueOf(unk)
+	v = reflect.Indirect(v)
+	if !v.Type().ConvertibleTo(floatType) {
+		return 0, fmt.Errorf("cannot convert %v to float64", v.Type())
 	}
-	if len(s.data) > 0 {
-		last := s.data[len(s.data)-1]
-		s.data = s.data[:len(s.data)-1]
-		s.Len = len(s.data)
-		s.Top = s.data[len(s.data)-1]
-		return last, true
-	} else {
-		return "", false
-	}
-}
-
-func (s StringsStack) String() string {
-	return strings.Join(s.data, " ")
+	fv := v.Convert(floatType)
+	return fv.Float(), nil
 }
 
 // Разбиваем выражение на составные части: операнды и операторы (токены)
@@ -96,78 +81,76 @@ func splitInput(input []byte) (res []string) {
 // Реализация алгоритма Обратной Польской записи
 func reversePolishNotation(input []string) (res []string) {
 	// Берем стэк
-	stack := new(StringsStack)
+	Stack := stack.NewStack()
 	for idx, v := range input {
 		// Итерируемся по каждому элеенту входного массива
 		switch v {
 		case "(":
 			// Это всегда в стэк
-			stack.Push(v)
+			Stack.Push(v)
 		case ")":
 			// Тут скидываем в результат все, что было в стэке до "("
 			// Сами же скобки дропаем
-			for stack.Len > 0 {
-				if stack.Top != "(" {
-					e, _ := stack.Pop()
-					res = append(res, e)
+			for Stack.Len > 0 {
+				if Stack.Top.Value != "(" {
+					e := Stack.Pop()
+					res = append(res, fmt.Sprintf("%v", e))
 				} else {
-					_, ok := stack.Pop()
-					if ok {
-						break
-					}
+					Stack.Pop()
 					break
 				}
 			}
 		case "^":
 			// Самая приоритетная операция, всегда в стэк
-			//e, _ := stack.Pop()
+			//e, _ := Stack.Pop()
 			//res = append(res, e)
-			stack.Push(v)
+			Stack.Push(v)
 		case "*", "/":
 			// убираем в стэк то, что не менее приоритетно, если есть
 			// И кладем в стэк
-			if stack.Len > 0 {
-				t := stack.Top
+			if Stack.Len > 0 {
+				t := Stack.Top.Value
 				if t == "^" || t == "*" || t == "/" {
-					e, _ := stack.Pop()
-					res = append(res, e)
-					stack.Push(v)
+					e := Stack.Pop()
+					res = append(res, fmt.Sprintf("%v", e))
+					Stack.Push(v)
 				} else {
-					stack.Push(v)
+					Stack.Push(v)
 				}
 				// Если ничего не было, кладем в стэк
 			} else {
-				stack.Push(v)
+				Stack.Push(v)
 			}
 		case "+", "-":
 			// Убираем все не менее приоритетное и кладем в стэк
-			if stack.Len > 0 {
-				t := stack.Top
+			if Stack.Len > 0 {
+				t := Stack.Top.Value
 				// возможно, я что-то делаю не так, но... ( - 2 ) ^ 2
 				if input[idx-1] == "(" {
 					res = append(res, "0")
 				}
 				// не менее приоритетными будут все операторы...
 				if t == "^" || t == "*" || t == "/" || t == "+" || t == "-" {
-					e, _ := stack.Pop()
-					res = append(res, e)
-					stack.Push(v)
+					e := Stack.Pop()
+					res = append(res, fmt.Sprintf("%v", e))
+					Stack.Push(v)
 				} else {
-					stack.Push(v)
+					Stack.Push(v)
 				}
 			} else {
-				stack.Push(v)
+				Stack.Push(v)
 			}
 		default:
 			// операнды всегда в результат сразу
 			res = append(res, v)
 		}
-		//fmt.Printf("v: %v\tstack: %v\tres:%v\n", v, stack, strings.Join(res, " "))
+		// дебажим тут https://www.semestr.online/informatics/polish.php
+		//fmt.Printf("v: %v\tStack: %v\tres:%v\n", v, Stack, strings.Join(res, " "))
 	}
 	// Стэк перекладываем в результат
-	for stack.Len > 0 {
-		e, _ := stack.Pop()
-		res = append(res, e)
+	for Stack.Len > 0 {
+		e := Stack.Pop()
+		res = append(res, fmt.Sprintf("%v", e))
 	}
 	return
 }
@@ -180,32 +163,30 @@ func calcRpn(rpn []string) float64 {
 		operators[v] = struct{}{}
 	}
 	// Делаем стэк
-	stack := new(StringsStack)
+	floatsStack := new(stack.Stack)
 	for _, v := range rpn {
 		if _, ok := operators[v]; ok {
 			// Нашли оператор. Достаем 2 значения со стека
-			s1, _ := stack.Pop()
-			s2, _ := stack.Pop()
-			a, _ := strconv.ParseFloat(s1, 64)
-			b, _ := strconv.ParseFloat(s2, 64)
+			a, _ := getFloat(floatsStack.Pop())
+			b, _ := getFloat(floatsStack.Pop())
 			// И что-то считаем в зависимости от результата
 			switch v {
 			case "+":
-				stack.Push(fmt.Sprintf("%f", a+b))
+				floatsStack.Push(a + b)
 			case "-":
-				stack.Push(fmt.Sprintf("%f", b-a))
+				floatsStack.Push(b - a)
 			case "*":
-				stack.Push(fmt.Sprintf("%f", a*b))
+				floatsStack.Push(a * b)
 			case "/":
-				stack.Push(fmt.Sprintf("%f", b/a))
+				floatsStack.Push(b / a)
 			case "^":
-				stack.Push(fmt.Sprintf("%f", math.Pow(b, a)))
+				floatsStack.Push(math.Pow(b, a))
 			}
 		} else {
-			stack.Push(v)
+			f, _ := strconv.ParseFloat(v, 64)
+			floatsStack.Push(f)
 		}
 	}
-	r, _ := stack.Pop()
-	res, _ := strconv.ParseFloat(r, 64)
-	return res
+	r, _ := getFloat(floatsStack.Pop())
+	return r
 }
