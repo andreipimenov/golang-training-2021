@@ -19,6 +19,8 @@ func TestInvalidExpressions(t *testing.T) {
 		"20/2-(2+2*3)^.2",
 		"*20.2",
 		"20/2-(2+2*3)++",
+		"-2-2-2",
+		"+1-2",
 	}
 	for _, in := range invalidInputs {
 		err := inputValidate([]byte(in))
