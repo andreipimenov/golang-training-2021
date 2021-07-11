@@ -53,6 +53,9 @@ func TestCalcRPN(t *testing.T) {
 		"( - 2 ) ^ 2":                  4,
 		"20/2-(2+2*3)":                 2,
 		"14/88=":                       0.1590909090909091,
+		"2^(2+2)":                      16,
+		"2^(-2)":                       0.25,
+		"2":                            2,
 	}
 	for k, v := range testData {
 		input := []byte(strings.Replace(k, " ", "", -1))
@@ -61,7 +64,7 @@ func TestCalcRPN(t *testing.T) {
 		}
 		res := cal.Calculate(string(input))
 		if res != v {
-			t.Errorf("Wrong calc result: got: '%v', expected: '%v'", res, v)
+			t.Errorf("Wrong calc result of %v: got: '%v', expected: '%v'", k, res, v)
 		}
 	}
 }
