@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"math"
 	"strconv"
-	"strings"
 )
 
 // The task is implement the interface below
@@ -56,33 +55,14 @@ func (s *StackFloat) Peek() float64 {
 type Calculator struct{}
 
 func (calc *Calculator) Calculate(expression string) float64 {
-	expression = strings.ReplaceAll(expression, " ", "")
-	isLegitimate(expression)
-	preparedExpression := getAdoptedExpression(expression)
 	//Решение подготовленного выражения в ОПН
-	reversedPolishNotation := expression2ReversedPolishNotation(preparedExpression)
+	reversedPolishNotation := expression2ReversedPolishNotation(expression)
 	arabicNumber := reversedPolishNotation2Answer(reversedPolishNotation)
 	return arabicNumber
 }
 
-func isLegitimate(expression string) {
-	numberOfLeftBrackets := strings.Count(expression, "(")
-	numberOfRightbrackets := strings.Count(expression, ")")
-	if numberOfLeftBrackets != numberOfRightbrackets {
-		fmt.Println("error: number of left brackets not equal number of right")
-		panic("error: number of left brackets not equal number of right")
-	}
-
-	// Check expressions like (I+II)*
-	if expression[0] == '*' || expression[len(expression)-1] == '*' ||
-		expression[len(expression)-1] == '-' || // ха-ха  expression[0] == '-'
-		expression[0] == '+' || expression[len(expression)-1] == '+' ||
-		expression[0] == '/' || expression[len(expression)-1] == '/' {
-		fmt.Println("error: beginning/ending of expression contains illegal symbol")
-		panic("error: beginning/ending of expression contains illegal symbol")
-	}
-}
-
+/*
+Перенесено в пакет "validation"
 func getAdoptedExpression(expression string) string {
 	if expression[len(expression)-1] == '=' {
 		expression = expression[:len(expression)-1]
@@ -101,6 +81,7 @@ func getAdoptedExpression(expression string) string {
 	}
 	return adoptedExpression
 }
+*/
 
 //Выражение в обратную польскую нотацию
 func expression2ReversedPolishNotation(expression string) string {
