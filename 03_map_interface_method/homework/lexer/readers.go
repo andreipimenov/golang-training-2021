@@ -1,6 +1,7 @@
 package lexer
 
 import (
+	"calc/assert"
 	"calc/runer"
 	"strconv"
 	"unicode"
@@ -55,11 +56,11 @@ func readOperator(r *runer.Runer) *Token {
 	return &Token{op, Span{r.Str(), start, r.Pos()}}
 }
 
-func readRune(r *runer.Runer) *Token {
+func readUnknown(r *runer.Runer) *Token {
 	start := r.Pos()
-	_, ok := r.Read()
-	if !ok {
-		return nil
+	if r.SkipWhile(unicode.IsLetter) == 0 {
+		_, ok := r.Read()
+		assert.True(ok, "must be called when not EOF")
 	}
 	return &Token{Unknown{}, Span{r.Str(), start, r.Pos()}}
 }

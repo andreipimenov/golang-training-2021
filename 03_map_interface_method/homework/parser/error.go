@@ -7,10 +7,9 @@ import (
 )
 
 const (
-	unexpectedTrailingSymbols   = "unexpected trailing symbols"
-	rParenExpected              = "')' is expected"
-	numberOrLParenExpected      = "number (possibly with unary '-') or '(' is expected"
-	infixOpOrExprCloserExpected = "infix operator or ')' (or expression end on the top level) is expected"
+	expectedNumberOrLParen   = "number (possibly with unary '-') or '(' is expected"
+	expectedInfixOpOrRParen  = "operator or ')' is expected"
+	expectedInfixOpOrExprEnd = "operator or expression end is expected"
 )
 
 type ParseError struct {

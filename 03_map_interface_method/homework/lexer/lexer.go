@@ -24,7 +24,7 @@ func (l *Lexer) Peek() *Token {
 			} else if op := readOperator(r); op != nil {
 				l.nextToken = op
 			} else {
-				l.nextToken = readRune(r)
+				l.nextToken = readUnknown(r)
 			}
 		} else {
 			return &Token{Eof{}, Span{r.Str(), r.Pos(), r.Pos() + 1}}

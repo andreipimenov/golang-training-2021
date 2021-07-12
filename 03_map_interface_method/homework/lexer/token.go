@@ -37,6 +37,11 @@ func (t *Token) IsNumber() bool {
 	return ok
 }
 
+func (t *Token) IsInfixOperator() bool {
+	op, ok := t.Value.(Operator)
+	return ok && op != LPAREN && op != RPAREN
+}
+
 func (t *Token) IsThisOperator(op Operator) bool {
 	actualOp, ok := t.Value.(Operator)
 	return ok && actualOp == op
