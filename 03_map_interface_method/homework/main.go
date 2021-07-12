@@ -35,14 +35,14 @@ func CalcByOp(operators, expression string, opindx int) (float64, error) {
 	lhs := expression[:opindx]
 	lhsEdgeIndx := strings.LastIndexAny(lhs, operators)
 
-	if lhsEdgeIndx!=-1{
-		if lhs[lhsEdgeIndx]=='-' && lhsEdgeIndx!=0{
-			if IsDigit(lhs[lhsEdgeIndx-1]){
+	if lhsEdgeIndx != -1 {
+		if lhs[lhsEdgeIndx] == '-' && lhsEdgeIndx != 0 {
+			if IsDigit(lhs[lhsEdgeIndx-1]) {
 				lhs = lhs[lhsEdgeIndx+1:]
-			}else{
+			} else {
 				lhs = lhs[lhsEdgeIndx:]
 			}
-		} else if lhs[lhsEdgeIndx]!='-'{
+		} else if lhs[lhsEdgeIndx] != '-' {
 			lhs = lhs[lhsEdgeIndx+1:]
 		}
 	}
@@ -53,8 +53,11 @@ func CalcByOp(operators, expression string, opindx int) (float64, error) {
 	if rhsEdgeIndx != -1 {
 		if rhsEdgeIndx == len(expression)-1 {
 			return 0, fmt.Errorf("subexpression contains operator at last indx %v", expression)
-		}else if rhsEdgeIndx==0 && rhs[rhsEdgeIndx]=='-'{
-
+		} else if rhsEdgeIndx == 0 && rhs[rhsEdgeIndx] == '-' {
+			rhsEdgeIndx2 := strings.IndexAny(rhs[1:], operators)
+			if rhsEdgeIndx2 != -1 {
+				rhs = rhs[:rhsEdgeIndx2+1]
+			}
 		} else {
 			rhs = rhs[:rhsEdgeIndx]
 		}
@@ -170,13 +173,12 @@ func (val *MyFloat) Calculate(expression string) (float64, error) {
 			opindx = strings.IndexAny(expression[1:], "+-") + 1
 		}
 
-
-			if opindx != -1 {
-				result, errCalcByOp := CalcByOp("+-", expression, opindx)
-				*val = MyFloat(result)
-				return result, errCalcByOp
-			}
+		if opindx != -1 {
+			result, errCalcByOp := CalcByOp("+-", expression, opindx)
+			*val = MyFloat(result)
+			return result, errCalcByOp
 		}
+	}
 	*val = 0
 	return 0, fmt.Errorf("expression must contains operators. %v", expression)
 }
@@ -189,6 +191,6 @@ func main() {
 	var a Calc
 	val := MyFloat(2)
 	a = &val
-	fmt.Println(a.Calculate("((-2+3)*5+3)*2"))
+	fmt.Println(a.Calculate("20/-2.000000--4.000000="))
 
 }
