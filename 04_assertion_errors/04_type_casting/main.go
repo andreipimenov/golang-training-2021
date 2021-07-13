@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/docker/distribution/uuid"
 	uuid "github.com/satori/go.uuid"
 )
 
