@@ -56,6 +56,7 @@ func TestCalcRPN(t *testing.T) {
 		"2^(2+2)":                      16,
 		"2^(-2)":                       0.25,
 		"2":                            2,
+		"(((2+2)))":                    4,
 	}
 	for k, v := range testData {
 		input := []byte(strings.Replace(k, " ", "", -1))

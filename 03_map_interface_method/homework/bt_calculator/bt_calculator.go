@@ -37,8 +37,8 @@ func NewCalculator() *Calculator {
 
 type Element struct {
 	Data     string  // то, что передаем при создании элемента
-	Value    float64 // Результат выч. или просто float64 от даты
-	IsLeaf   bool    // И если это число, то это - лист
+	Value    float64 // float64 от даты, если дата - число
+	IsLeaf   bool    // И если это число, то это - leaf
 	Operator string  // + - * / ^
 	Left     *Element
 	Right    *Element
@@ -59,11 +59,13 @@ type Element struct {
 	"^" - 1
 
 	Причем выбирается самый последний при одинаковом приоритете
+
+	https://habr.com/ru/post/263775/
 */
 func findInflectionPoint(in []byte) int {
 	// слайс содержит массив приоритетов байт
 	// не разделяю на лексемы, но т.к. ищем операторы, вполне ок
-	// Если по индексу не оператор, там точно 0
+	// Если по индексу не оператор, там будет 0
 	m := make([]int, len(in))
 	// создадим магическое число, что уменьшит приоритет в скобках
 	// если наткнулись на (, уменьшаем на -3, потом увеличиваем на 3 при )
@@ -109,12 +111,12 @@ func trimBrackets(data string) string {
 
 func build(data string) *Element {
 	// Основная функция. что строит дерево и врзвращает корень
-	// если не передан parent. Вызывается рекурсивно
+	// вызывается рекурсивно
 	e := new(Element)
 	// Если скобки открываются и закрываются - убираем
 	data = trimBrackets(data)
 	//fmt.Println("building for", data)
-	e.Data = data
+	e.Data = data //Чисто для дебага, не актуально
 	// а не число ли создаем
 	v, err := strconv.ParseFloat(data, 64)
 	if err == nil {
@@ -128,7 +130,7 @@ func build(data string) *Element {
 	inflectionIds := findInflectionPoint(in)
 	// на точке перегиба - нужный нам оператор
 	e.Operator = string(in[inflectionIds])
-	//fmt.Println("oper", e.Operator
+	//fmt.Println("oper", e.Operator)
 	// ну и build'им левую и правую части
 	leftData := string(in[:inflectionIds])
 	//fmt.Println("leftData", leftData)
