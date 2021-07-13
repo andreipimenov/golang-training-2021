@@ -4,6 +4,9 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+
+	"github.com/docker/distribution/uuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 type User struct {
@@ -16,6 +19,10 @@ func (u User) Greet() {
 
 type Device struct {
 	Name string
+}
+
+type OtherDevice struct {
+	ID uuid.UUID
 }
 
 func (d Device) HashName() {
@@ -37,6 +44,8 @@ func main() {
 
 	d := Device(u)
 	d.HashName()
+
+	// _ = OtherDevice(d)
 
 	var i interface{} = User{"Jane"}
 	x, ok := i.(Device)
