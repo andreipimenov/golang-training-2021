@@ -8,15 +8,11 @@ package rpn_calculator
 import (
 	"fmt"
 	"math"
-	"reflect"
 	"strconv"
 	"strings"
 
 	stack "github.com/andreipimenov/golang-training-2021/03_map_interface_method/homework/stack"
 )
-
-// Нужна дл доставаний из стэка float64 вместо interface{}
-var floatType = reflect.TypeOf(float64(0))
 
 type Calculator struct{}
 
@@ -28,17 +24,6 @@ func (cal *Calculator) Calculate(expression string) float64 {
 
 func NewCalculator() *Calculator {
 	return &Calculator{}
-}
-
-// Функция преобразует interface{} из стэка в float64 для вычислений
-func getFloat(unk interface{}) (float64, error) {
-	v := reflect.ValueOf(unk)
-	v = reflect.Indirect(v)
-	if !v.Type().ConvertibleTo(floatType) {
-		return 0, fmt.Errorf("cannot convert %v to float64", v.Type())
-	}
-	fv := v.Convert(floatType)
-	return fv.Float(), nil
 }
 
 // Разбиваем выражение на составные части: операнды и операторы (токены)
@@ -167,8 +152,8 @@ func calcRpn(rpn []string) float64 {
 	for _, v := range rpn {
 		if _, ok := operators[v]; ok {
 			// Нашли оператор. Достаем 2 значения со стека
-			a, _ := getFloat(floatsStack.Pop())
-			b, _ := getFloat(floatsStack.Pop())
+			a, _ := floatsStack.Pop().(float64)
+			b, _ := floatsStack.Pop().(float64)
 			// И что-то считаем в зависимости от результата
 			switch v {
 			case "+":
@@ -187,6 +172,6 @@ func calcRpn(rpn []string) float64 {
 			floatsStack.Push(f)
 		}
 	}
-	r, _ := getFloat(floatsStack.Pop())
+	r, _ := floatsStack.Pop().(float64)
 	return r
 }
