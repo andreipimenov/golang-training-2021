@@ -7,7 +7,7 @@ import (
 
 func TestGet(t *testing.T) {
 
-	var cache = NewGedis()
+	var cache = NewGedis(5 * time.Second)
 
 	key := "common_key"
 	val := 1
@@ -25,7 +25,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestExpiredKey(t *testing.T) {
-	var cache = NewGedis()
+	var cache = NewGedis(5 * time.Second)
 	// lets test if expiry time is increasing
 	key := "i_will_expire_soon"
 	val := 1
@@ -38,7 +38,7 @@ func TestExpiredKey(t *testing.T) {
 }
 
 func TestIncreaseExpiry(t *testing.T) {
-	var cache = NewGedis()
+	var cache = NewGedis(5 * time.Second)
 	// lets test if expiry time is increasing
 	key := "we_will_get_it_from_goroutine"
 	val := 1
@@ -57,7 +57,7 @@ func TestIncreaseExpiry(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	var cache = NewGedis()
+	var cache = NewGedis(5 * time.Second)
 	key := "to_be_deleted_right_after_set"
 	val := 1
 	cache.Set(key, val, 10*time.Second)
@@ -69,7 +69,7 @@ func TestDelete(t *testing.T) {
 }
 
 func TestWrongKey(t *testing.T) {
-	var cache = NewGedis()
+	var cache = NewGedis(5 * time.Second)
 	// gtting wrond value
 	key := "I'm absent"
 	value, found := cache.Get(key)

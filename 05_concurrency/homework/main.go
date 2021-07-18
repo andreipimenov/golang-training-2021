@@ -15,7 +15,7 @@ type Cache interface {
 }
 
 func main() {
-	c := gedis.NewGedis()
+	c := gedis.NewGedis(5 * time.Second)
 	// example of simple set/get usage
 	c.Set("a", 1, 10*time.Second)
 	v, found := c.Get("a")

@@ -5,8 +5,6 @@ import (
 	"time"
 )
 
-const cleanupInterval = 5 * time.Second
-
 // Element struct contains value (interface{}) and its TTL
 type element struct {
 	value       interface{}
@@ -15,7 +13,8 @@ type element struct {
 }
 
 type Gedis struct {
-	data map[string]*element
+	data            map[string]*element
+	cleanupInterval time.Duration
 	sync.Mutex
 }
 
@@ -62,7 +61,7 @@ func (g *Gedis) Delete(key string) {
 
 func cleanup(g *Gedis) {
 	for {
-		time.Sleep(cleanupInterval)
+		time.Sleep(g.cleanupInterval)
 		for k, v := range g.data {
 			if time.Now().After(v.validBefore) {
 				g.Lock()
@@ -74,9 +73,10 @@ func cleanup(g *Gedis) {
 
 }
 
-func NewGedis() *Gedis {
+func NewGedis(cleanupInterval time.Duration) *Gedis {
 	data := make(map[string]*element)
 	g := new(Gedis)
+	g.cleanupInterval = cleanupInterval
 	g.data = data
 	go cleanup(g)
 	return g
