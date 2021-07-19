@@ -28,13 +28,10 @@ func (t *CacheMap) Set(key string, value interface{}, ttl time.Duration) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	//fmt.Println(t.m)
-	//fmt.Println(key, value, ttl)
-
 	var valueFromMap = Value{value, ttl, time.Now()}
 	t.m[key] = valueFromMap
 	t.counter++
-	if t.counter > 1000 {
+	if t.counter > 1000000 {
 		t.clearCache()
 		t.counter = 0
 	}
@@ -44,8 +41,6 @@ func (t *CacheMap) Set(key string, value interface{}, ttl time.Duration) {
 func (t CacheMap) Get(key string) (interface{}, bool) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	//fmt.Println(key)
-	fmt.Println(t.m)
 
 	if k, ok := t.m[key]; ok {
 		if time.Now().Sub(k.currentTime) < k.ttl {
@@ -59,9 +54,11 @@ func (t CacheMap) Get(key string) (interface{}, bool) {
 func (t CacheMap) Delete(key string) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	//fmt.Println(key)
+
 	delete(t.m, key)
 }
+
+//function, clearing cache after million requests
 
 func (t CacheMap) clearCache() {
 	fmt.Println(t.m)
@@ -71,7 +68,7 @@ func (t CacheMap) clearCache() {
 		}
 
 	}
-	fmt.Println(t.m)
+
 }
 
 func main() {
@@ -82,22 +79,11 @@ func main() {
 
 	cache.Set("cache1", "123", time.Second)
 	time.Sleep(2 * time.Second)
-
-	for i := 0; i < 1001; i++ {
-
-		cache.Set("cache2", "456", 4*time.Second)
-
-		//  fmt.Println(cache.counter, cache.m)
-
-	}
-
-	cache.clearCache()
-
+	cache.Set("cache2", "456", 4*time.Second)
 	fmt.Println(cache.Get("cache1"))
-
-	fmt.Println(cache.Get("cache1"))
+	fmt.Println(cache.Get("cache2"))
+	cache.Set("cache1", "123", time.Second)
 	cache.Delete("cache1")
-	cache.Delete("cache1")
-	fmt.Println(cache.Get("cache1"))
+	//cache.clearCache()
 
 }
