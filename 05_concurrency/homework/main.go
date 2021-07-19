@@ -23,22 +23,27 @@ func (item Item) IsExpired() bool {
 	return item.timeOfCreation.Add(item.TTL).Unix() <= time.Now().Unix()
 }
 
+func (item *Item) UpdateTime() {
+	item.timeOfCreation = time.Now()
+}
+
 type InMemoryCache struct {
 	sync.Mutex
 	cap   uint64
 	len   uint64
-	items map[string]Item
+	items map[string]*Item
 }
 
 func (c *InMemoryCache) Set(key string, value interface{}, ttl time.Duration) {
 
 	c.Lock()
 	c.len++
-	c.items[key] = Item{
+	tmp := Item{
 		Object:         value,
 		timeOfCreation: time.Now(),
 		TTL:            ttl,
 	}
+	c.items[key] = &tmp
 	if c.len > c.cap {
 		for k, v := range c.items {
 			if v.IsExpired() {
@@ -62,6 +67,7 @@ func (c *InMemoryCache) Get(key string) (interface{}, bool) {
 		c.Unlock()
 		return nil, false
 	}
+	value.UpdateTime()
 	c.Unlock()
 	return value.Object, true
 }
@@ -73,7 +79,7 @@ func (c *InMemoryCache) Delete(key string) {
 }
 
 func main() {
-	c := make(map[string]Item)
+	c := make(map[string]*Item)
 	cache := InMemoryCache{
 		items: c,
 		cap:   3,
@@ -83,8 +89,10 @@ func main() {
 	cache.Set("2", "Some Value2", 4*time.Second)
 	cache.Set("key3", "Some Value3", 2*time.Second)
 	cache.Set("key4", "Some Value4", 4*time.Second)
-	time.Sleep(1 * time.Second)
-	fmt.Println(cache.Get("key3"))
+	time.Sleep(3 * time.Second)
+	fmt.Println(cache.Get("key"))
+	time.Sleep(3 * time.Second)
+	fmt.Println(cache.Get("key"))
 
 	for i := 0; i < 8128; i++ {
 		go func(i int) {
@@ -94,4 +102,5 @@ func main() {
 	}
 
 	fmt.Println(cache.Get("key4"))
+
 }
