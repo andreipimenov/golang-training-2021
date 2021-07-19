@@ -4,7 +4,7 @@ Implement in-memory cache.
 It must be safe for concurrent usage.
 
 Cache interface:
-```
+```go
 type Cache interface {
     Set(key string, value interface{}, ttl time.Duration)
     Get(key string) (interface{}, bool)

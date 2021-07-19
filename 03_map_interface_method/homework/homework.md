@@ -27,7 +27,7 @@ Keep in mind that it should work with other examples.
 
 The following interface should be implemented
 
-```
+```go
 type Calc interface {
     Calculate(expression string) float64
 }
