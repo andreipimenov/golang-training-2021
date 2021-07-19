@@ -36,7 +36,7 @@ func (cache *CacheMemory) Get(key string) (interface{}, bool) {
 		cache.Unlock()
 		return nil, false
 	}
-	//updating the time of the request
+	//updating the time of erase
 	cache.Memory[key] = CacheElement{
 		Value:       value.Value,
 		ErasureTime: time.Now().Add(cache.Memory[key].TTL),
