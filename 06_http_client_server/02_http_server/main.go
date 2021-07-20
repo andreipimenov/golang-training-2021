@@ -77,6 +77,7 @@ func main() {
 // 		err := json.NewDecoder(r.Body).Decode(&u)
 // 		if err != nil {
 // 			writeResponse(w, http.StatusBadRequest, Error{err.Error()})
+//          return
 // 		}
 // 		h.data.Store(u.Name, u)
 // 		writeResponse(w, http.StatusOK, u)
