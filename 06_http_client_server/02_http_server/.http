@@ -1,0 +1,14 @@
+GET http://127.0.0.1:8080/ping
+
+###
+
+POST http://127.0.0.1:8080/user
+
+{
+    "name": "Jane",
+    "age": 33
+}
+
+###
+
+GET http://127.0.0.1:8080/user?name=Jane
