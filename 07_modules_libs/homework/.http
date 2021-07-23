@@ -1,0 +1,21 @@
+GET http://127.0.0.1:8080/ping
+
+###
+
+GET http://127.0.0.1:8080/price/AAPL/date/2021-07-22
+###
+
+POST http://127.0.0.1:8080/user
+
+{
+    "name": "Jane",
+    "age": 33
+}
+
+###
+
+GET http://127.0.0.1:8080/user/John
+
+###
+
+GET http://127.0.0.1:8080/long
