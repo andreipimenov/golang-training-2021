@@ -15,6 +15,7 @@ type TimeSeriesDaily struct {
 	MetaData       map[string]string    `json:"Meta Data"`
 	TimeSeriesData map[string]DailyData `json:"Time Series (Daily)"`
 	ErrorMessage   string               `json:"Error Message"`
+	Note           string               `json:"Note"` // A note about free API key
 }
 
 type DailyData struct {

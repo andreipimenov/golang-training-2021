@@ -18,6 +18,10 @@ GET http://localhost:8080/price/AAPL/diff/2021-07-24/2021-07-25
 
 GET http://localhost:8080/price/AAPL/diff/20210721/2021-07-22
 
+### first_date < second_date
+
+GET http://localhost:8080/price/AAPL/diff/2021-07-23/2021-07-22
+
 ### wrong second_date
 
 GET http://localhost:8080/price/AAPL/diff/2021-07-21/20210722
