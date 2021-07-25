@@ -5,7 +5,7 @@ type TickerDiff struct {
 	Ticker     string `json:"ticker"`
 	FirstDate  string `json:"first_date"`
 	SecondDate string `json:"second_date"`
-	Format     string `json:"-"`
+	Format     string `json:"-"` // "compact" or "full", for alphavantage.co only
 	Diff       string `json:"percentage_diff"`
 }
 

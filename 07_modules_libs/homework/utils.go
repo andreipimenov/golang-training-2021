@@ -32,7 +32,7 @@ func validateDiffDates(first, second string) error {
 	return nil
 }
 
-func GetDiff(td *TickerDiff) error {
+func GetDiffAsync(chanErr chan (error), td *TickerDiff) {
 
 	// Usage: https://www.alphavantage.co/documentation/#intraday-extended
 	url := fmt.Sprintf("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=%v&outputsize=%v&apikey=%v",
@@ -43,31 +43,31 @@ func GetDiff(td *TickerDiff) error {
 	}
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		return err
+		chanErr <- err
 	}
 
 	res, err := httpClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("alphavantage call error: %v", err.Error())
+		chanErr <- fmt.Errorf("alphavantage call error: %v", err.Error())
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf("alphavantage call error (not-OK)")
+		chanErr <- fmt.Errorf("alphavantage call error (not-OK)")
 	}
 
 	raw, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return fmt.Errorf("alphavantage call error: %v", err.Error())
+		chanErr <- fmt.Errorf("alphavantage call error: %v", err.Error())
 	}
 	// Parsing data
 	tsd := TimeSeriesDaily{}
 	err = json.Unmarshal(raw, &tsd)
 	if err != nil {
-		return fmt.Errorf("alphavantage response unmarshal error: %v", err.Error())
+		chanErr <- fmt.Errorf("alphavantage response unmarshal error: %v", err.Error())
 	}
 	if tsd.ErrorMessage != "" {
-		return fmt.Errorf("alphavantage response unmarshal error: %v", tsd.ErrorMessage)
+		chanErr <- fmt.Errorf("alphavantage response unmarshal error: %v", tsd.ErrorMessage)
 	}
 	// Let's check if first and second dates are in response and change them if not
 	// fmt.Println(td.FirstDate, td.SecondDate)
@@ -78,7 +78,7 @@ func GetDiff(td *TickerDiff) error {
 	f, _ := strconv.ParseFloat(tsd.TimeSeriesData[newFirstDate].Close, 64)
 	s, _ := strconv.ParseFloat(tsd.TimeSeriesData[newSecondDate].Close, 64)
 	td.Diff = fmt.Sprintf("%.2f", ((s-f)/f)*100)
-	return nil
+	chanErr <- nil
 }
 
 // checkDateInAVResp allows to check if a date exists in the AV response
@@ -94,3 +94,52 @@ func checkDateInAVResp(date string, tsd *TimeSeriesDaily) string {
 		return date
 	}
 }
+
+// func GetDiff(td *TickerDiff) error {
+
+// 	// Usage: https://www.alphavantage.co/documentation/#intraday-extended
+// 	url := fmt.Sprintf("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=%v&outputsize=%v&apikey=%v",
+// 		td.Ticker, td.Format, apiKey)
+// 	// Making  http-request
+// 	httpClient := &http.Client{
+// 		Timeout: time.Duration(time.Second * 15),
+// 	}
+// 	req, err := http.NewRequest(http.MethodGet, url, nil)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	res, err := httpClient.Do(req)
+// 	if err != nil {
+// 		return fmt.Errorf("alphavantage call error: %v", err.Error())
+// 	}
+// 	defer res.Body.Close()
+
+// 	if res.StatusCode != http.StatusOK {
+// 		return fmt.Errorf("alphavantage call error (not-OK)")
+// 	}
+
+// 	raw, err := ioutil.ReadAll(res.Body)
+// 	if err != nil {
+// 		return fmt.Errorf("alphavantage call error: %v", err.Error())
+// 	}
+// 	// Parsing data
+// 	tsd := TimeSeriesDaily{}
+// 	err = json.Unmarshal(raw, &tsd)
+// 	if err != nil {
+// 		return fmt.Errorf("alphavantage response unmarshal error: %v", err.Error())
+// 	}
+// 	if tsd.ErrorMessage != "" {
+// 		return fmt.Errorf("alphavantage response unmarshal error: %v", tsd.ErrorMessage)
+// 	}
+// 	// Let's check if first and second dates are in response and change them if not
+// 	// fmt.Println(td.FirstDate, td.SecondDate)
+// 	newFirstDate := checkDateInAVResp(td.FirstDate, &tsd)
+// 	newSecondDate := checkDateInAVResp(td.SecondDate, &tsd)
+// 	// fmt.Println(newFirstDate, newSecondDate)
+// 	// and calculating perc diff
+// 	f, _ := strconv.ParseFloat(tsd.TimeSeriesData[newFirstDate].Close, 64)
+// 	s, _ := strconv.ParseFloat(tsd.TimeSeriesData[newSecondDate].Close, 64)
+// 	td.Diff = fmt.Sprintf("%.2f", ((s-f)/f)*100)
+// 	return nil
+// }

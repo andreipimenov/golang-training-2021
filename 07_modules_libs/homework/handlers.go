@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -8,6 +9,8 @@ import (
 )
 
 func DiffHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	ticker := chi.URLParam(r, "ticker")
 	firstDate := chi.URLParam(r, "first_date")
 	secondDate := chi.URLParam(r, "second_date")
@@ -29,10 +32,27 @@ func DiffHandler(w http.ResponseWriter, r *http.Request) {
 		SecondDate: secondDate,
 		Format:     format,
 	}
-	err = GetDiff(td)
-	if err != nil {
-		writeResponse(w, http.StatusBadRequest, APIError{err.Error()})
+	// version with context
+	errChan := make(chan (error), 1)
+	go GetDiffAsync(errChan, td)
+	select {
+	case err = <-errChan:
+		if err != nil {
+			writeResponse(w, http.StatusBadRequest, APIError{err.Error()})
+			return
+		}
+		writeResponse(w, http.StatusOK, td)
+		return
+	case <-ctx.Done():
+		log.Printf("Interrupted with err: %v", ctx.Err())
 		return
 	}
-	writeResponse(w, http.StatusOK, td)
+
+	// without context
+	// err = GetDiff(td)
+	// if err != nil {
+	// 	writeResponse(w, http.StatusBadRequest, APIError{err.Error()})
+	// 	return
+	// }
+	// writeResponse(w, http.StatusOK, td)
 }
