@@ -9,8 +9,6 @@ import (
 )
 
 func DiffHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
 	ticker := chi.URLParam(r, "ticker")
 	firstDate := chi.URLParam(r, "first_date")
 	secondDate := chi.URLParam(r, "second_date")
@@ -33,6 +31,7 @@ func DiffHandler(w http.ResponseWriter, r *http.Request) {
 		Format:     format,
 	}
 	// version with context
+	ctx := r.Context()
 	errChan := make(chan (error), 1)
 	go GetDiffAsync(errChan, td)
 	select {
