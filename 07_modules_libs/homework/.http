@@ -1,0 +1,8 @@
+GET https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&outputsize=full&symbol=IBM&apikey=3UGTIIOY1CEXRDCE
+
+###
+
+GET http://127.0.0.1:8080/price/AAPL/date/2021-07-22
+###
+
+GET http://127.0.0.1:8080/price/GOOG/date/2021-07-22
