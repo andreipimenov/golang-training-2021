@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -60,7 +61,7 @@ func GetStockInfo(w http.ResponseWriter, r *http.Request) {
 
 	currenDate := unmData.M.LastRefreshed
 	if len(currenDate) < 10 {
-		writeResponse(w, http.StatusBadRequest, Error{errUnmarshal.Error()}) //add right err
+		writeResponse(w, http.StatusBadRequest, Error{"wrong date value"})
 		return
 	}
 
@@ -71,12 +72,12 @@ func GetStockInfo(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(k, currenDate) {
 			localMax, errParseMax := strconv.ParseFloat(v.High, 64)
 			if errParseMax != nil {
-				writeResponse(w, http.StatusBadRequest, Error{errUnmarshal.Error()}) //add right err
+				writeResponse(w, http.StatusBadRequest, errParseMax)
 				return
 			}
-			localMin, errParseMin := strconv.ParseFloat(v.High, 64)
+			localMin, errParseMin := strconv.ParseFloat(v.Low, 64)
 			if errParseMin != nil {
-				writeResponse(w, http.StatusBadRequest, Error{errUnmarshal.Error()}) //add right err
+				writeResponse(w, http.StatusBadRequest, errParseMin)
 				return
 			}
 			if globalMin > localMin {
@@ -103,14 +104,14 @@ func GetStockInfo(w http.ResponseWriter, r *http.Request) {
 
 	sma, ok := unmSMA.Data[currenDate]
 	if !ok {
-		writeResponse(w, http.StatusBadRequest, Error{errUnmarshal.Error()}) //add right err
+		writeResponse(w, http.StatusBadRequest, Error{"cant find current date avg"})
 		return
 	}
 
 	fmt.Println(globalMax, globalMin, sma.SMA)
 	avg, errParse := strconv.ParseFloat(sma.SMA, 64)
 	if errParse != nil {
-		writeResponse(w, http.StatusBadRequest, Error{errUnmarshal.Error()}) //add right err
+		writeResponse(w, http.StatusBadRequest, errParse)
 		return
 	}
 
@@ -135,7 +136,12 @@ func writeResponse(w http.ResponseWriter, code int, v interface{}) {
 	b, err := json.Marshal(v)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 	w.WriteHeader(code)
-	w.Write([]byte(b))
+	_, err = w.Write([]byte(b))
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 }
