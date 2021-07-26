@@ -65,7 +65,7 @@ func GetStockInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	globalMax := 0.0
-	globalMin := 0.0
+	globalMin := math.MaxFloat64
 	currenDate = currenDate[0:10]
 	for k, v := range unmData.TS {
 		if strings.Contains(k, currenDate) {
