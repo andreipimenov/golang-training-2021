@@ -39,14 +39,14 @@ func connectionsClosedForServer(server *http.Server) chan struct{} {
 func serveTickerStat(w http.ResponseWriter, ticker string) {
 	log.Println("Serving stat of " + ticker)
 
-	reportICE := func(err error) {
+	reportISE := func(err error) {
 		w.WriteHeader(http.StatusInternalServerError)
 		logErr(err)
 	}
 
 	res, err := http.Get("https://query1.finance.yahoo.com/v8/finance/chart/?symbol=" + ticker + "&period1=0&period2=9999999999&interval=3mo")
 	if err != nil {
-		reportICE(err)
+		reportISE(err)
 		return
 	}
 	defer res.Body.Close()
@@ -68,7 +68,7 @@ func serveTickerStat(w http.ResponseWriter, ticker string) {
 	}
 	err = json.NewDecoder(res.Body).Decode(&yahooStat)
 	if err != nil {
-		reportICE(err)
+		reportISE(err)
 		return
 	}
 	if yahooStat.Chart.Error != nil {
@@ -99,7 +99,7 @@ func serveTickerStat(w http.ResponseWriter, ticker string) {
 
 	err = json.NewEncoder(w).Encode(stat)
 	if err != nil {
-		reportICE(err)
+		reportISE(err)
 		return
 	}
 }
