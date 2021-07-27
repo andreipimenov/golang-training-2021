@@ -1,0 +1,8 @@
+### Contains data on 27/07/2021
+GET http://127.0.0.1:8080/price/IBM/date/2021-07-26
+
+### Doesn't contain any data on 27/07/2021
+GET http://127.0.0.1:8080/price/IBM/date/2021-07-27
+
+###
+GET http://127.0.0.1:8080/price/APPL/date/2021-07-26
