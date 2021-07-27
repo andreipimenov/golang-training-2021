@@ -48,7 +48,7 @@ func getStockInfo(w http.ResponseWriter, r *http.Request) {
 			data := dayData.(map[string]interface{})
 
 			type info struct {
-				Ticker        string `json:"stockName"`
+				Ticker        string `json:"ticker"`
 				Highest_price string `json:"highest_price"`
 				Lowest_price  string `json:"lowest_price"`
 				Avg_price     string `json:"avg_price"`
