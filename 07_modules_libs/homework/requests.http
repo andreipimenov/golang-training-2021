@@ -1,0 +1,9 @@
+GET http://127.0.0.1:8080/price/AAPL/diff/2021-06-22/2021-07-26
+
+###this one doesn't work because get request to api on date 2021-07-25 returns nothing
+GET http://127.0.0.1:8080/price/AAPL/diff/2021-07-25/2021-07-26
+
+###
+GET http://127.0.0.1:8080/price/AAPL/diff/2021-07-21/2021-07-26
+#used api is marketstack
+#http://api.marketstack.com/v1/eod?access_key=3b795be41caab45049f693481cce6df4
