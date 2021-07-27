@@ -108,7 +108,6 @@ func GetStockInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(globalMax, globalMin, sma.SMA)
 	avg, errParse := strconv.ParseFloat(sma.SMA, 64)
 	if errParse != nil {
 		writeResponse(w, http.StatusBadRequest, errParse)
