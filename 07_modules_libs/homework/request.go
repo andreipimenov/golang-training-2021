@@ -9,13 +9,13 @@ import (
 	"time"
 )
 
-const ApiKey = "2NVMJS308BND1F0Y"
+const apiKey = "2NVMJS308BND1F0Y"
 
 func getStockInfo(w http.ResponseWriter, r *http.Request) {
 
 	stockName := chi.URLParam(r, "Ticker")
 
-	url := fmt.Sprintf("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=%s&apikey=%s", stockName, ApiKey)
+	url := fmt.Sprintf("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=%s&apikey=%s", stockName, apiKey)
 
 	response, error := http.Get(url)
 
