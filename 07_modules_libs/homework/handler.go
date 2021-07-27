@@ -28,10 +28,6 @@ type AVantageResp struct {
 	SecondData string `json:"second_data"`
 }
 
-type Error struct {
-	Error string
-}
-
 func (c *AVantageCacheHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	apiKey := "ODFNBOJQFCDO91TF"
