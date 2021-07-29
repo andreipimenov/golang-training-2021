@@ -21,7 +21,6 @@ func main() {
 	r := chi.NewRouter()
 
 	repo := repository.New()
-	//service collides with import
 	s := service.New(repo)
 	h := handler.New(s)
 

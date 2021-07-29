@@ -24,6 +24,11 @@ func (s *stockAPIResponse) UnmarshalJSON(raw []byte) error {
 		return err
 	}
 
+	errMsg, ok := i["Error Message"].(string)
+	if ok {
+		return fmt.Errorf(errMsg)
+	}
+
 	tsd, ok := i["Time Series (Daily)"].(map[string]interface{})
 	if !ok {
 		return errUnexpectedJSON
@@ -50,7 +55,6 @@ func (s *stockAPIResponse) UnmarshalJSON(raw []byte) error {
 		if !ok {
 			return errUnexpectedJSON
 		}
-		//'close' collides with builtin
 		c, ok := x["4. close"].(string)
 		if !ok {
 			return errUnexpectedJSON

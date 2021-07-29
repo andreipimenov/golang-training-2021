@@ -16,6 +16,10 @@ const (
 	apiKey         = "G7X892PR9Q5DC69X"
 )
 
+var (
+	errStatusNotOk = fmt.Errorf("status is not ok")
+)
+
 type Service struct {
 	repo   Repository
 	client HTTPClient
@@ -59,6 +63,10 @@ func (s *Service) GetPrice(ticker string, date time.Time) (*model.Price, error) 
 			log.Println(err)
 		}
 	}()
+
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return nil, errStatusNotOk
+	}
 
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
