@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 
@@ -24,7 +25,7 @@ func New(repo Repository) *Service {
 	return &Service{
 		repo: repo,
 		client: &http.Client{
-			Timeout: time.Duration(time.Minute),
+			Timeout: time.Minute,
 		},
 	}
 }
@@ -52,7 +53,12 @@ func (s *Service) GetPrice(ticker string, date time.Time) (*model.Price, error) 
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
 
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

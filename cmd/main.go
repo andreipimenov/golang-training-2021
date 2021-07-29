@@ -21,8 +21,9 @@ func main() {
 	r := chi.NewRouter()
 
 	repo := repository.New()
-	service := service.New(repo)
-	h := handler.New(service)
+	//service collides with import
+	s := service.New(repo)
+	h := handler.New(s)
 
 	r.Route("/", func(r chi.Router) {
 		r.Use(middleware.Logger)

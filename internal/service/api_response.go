@@ -50,11 +50,12 @@ func (s *stockAPIResponse) UnmarshalJSON(raw []byte) error {
 		if !ok {
 			return errUnexpectedJSON
 		}
-		close, ok := x["4. close"].(string)
+		//'close' collides with builtin
+		c, ok := x["4. close"].(string)
 		if !ok {
 			return errUnexpectedJSON
 		}
-		(*s)[d] = model.Price{Open: open, High: high, Low: low, Close: close}
+		(*s)[d] = model.Price{Open: open, High: high, Low: low, Close: c}
 	}
 	return nil
 }
