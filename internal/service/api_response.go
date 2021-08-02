@@ -23,6 +23,14 @@ func (s *stockAPIResponse) UnmarshalJSON(raw []byte) error {
 	if err != nil {
 		return err
 	}
+	_, o := i["Note"]
+	if o {
+		return fmt.Errorf("token overused. try again later")
+	}
+	_, o = i["Error Message"]
+	if o {
+		return fmt.Errorf("invalid API call. check ticker name")
+	}
 
 	tsd, ok := i["Time Series (Daily)"].(map[string]interface{})
 	if !ok {
@@ -50,11 +58,11 @@ func (s *stockAPIResponse) UnmarshalJSON(raw []byte) error {
 		if !ok {
 			return errUnexpectedJSON
 		}
-		close, ok := x["4. close"].(string)
+		cl, ok := x["4. close"].(string)
 		if !ok {
 			return errUnexpectedJSON
 		}
-		(*s)[d] = model.Price{Open: open, High: high, Low: low, Close: close}
+		(*s)[d] = model.Price{Open: open, High: high, Low: low, Close: cl}
 	}
 	return nil
 }
