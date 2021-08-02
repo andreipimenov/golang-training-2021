@@ -13,5 +13,5 @@ func writeResponse(w http.ResponseWriter, code int, v interface{}) {
 		return
 	}
 	w.WriteHeader(code)
-	w.Write([]byte(b))
+	w.Write(b)
 }

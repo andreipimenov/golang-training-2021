@@ -9,17 +9,30 @@ import (
 )
 
 var (
-	errUnexpectedJSON = fmt.Errorf("unexpected json")
+	errUnexpectedJSON   = fmt.Errorf("unexpected json")
+	errUnexpectedDate   = fmt.Errorf("unexprected date")
+	errWeekendDate      = fmt.Errorf("weekend date")
+	errDateDoesNotExist = fmt.Errorf("date does not exist")
 )
 
-type stockAPIResponse map[time.Time]model.Price
+type StockAPIResponse struct {
+	TimeSeriesDaily   map[time.Time]model.Price
+	LastRefreshedTime time.Time
+}
 
-func (s *stockAPIResponse) UnmarshalJSON(raw []byte) error {
-	if s != nil && *s == nil {
-		*s = make(map[time.Time]model.Price)
-	}
+func (s *StockAPIResponse) UnmarshalJSON(raw []byte) error {
 	var i map[string]interface{}
 	err := json.Unmarshal(raw, &i)
+	if err != nil {
+		return err
+	}
+
+	lastRefreshed, ok := i["Meta Data"].(map[string]interface{})["3. Last Refreshed"].(string)
+	if !ok {
+		return errUnexpectedJSON
+	}
+
+	lastRefreshedTime, err := time.Parse("2006-01-02", lastRefreshed)
 	if err != nil {
 		return err
 	}
@@ -54,7 +67,9 @@ func (s *stockAPIResponse) UnmarshalJSON(raw []byte) error {
 		if !ok {
 			return errUnexpectedJSON
 		}
-		(*s)[d] = model.Price{Open: open, High: high, Low: low, Close: close}
+		s.TimeSeriesDaily[d] = model.Price{Open: open, High: high, Low: low, Close: close}
 	}
+	s.LastRefreshedTime = lastRefreshedTime
+
 	return nil
 }

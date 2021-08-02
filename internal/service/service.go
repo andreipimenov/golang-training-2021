@@ -59,13 +59,28 @@ func (s *Service) GetPrice(ticker string, date time.Time) (*model.Price, error) 
 		return nil, err
 	}
 
-	var sar stockAPIResponse
+	var sar *StockAPIResponse = &StockAPIResponse{
+		TimeSeriesDaily:   make(map[time.Time]model.Price),
+		LastRefreshedTime: time.Time{},
+	}
+
 	err = json.Unmarshal(b, &sar)
 	if err != nil {
 		return nil, err
 	}
 
-	p := sar[date]
+	if sar.LastRefreshedTime.Before(date) {
+		return nil, errUnexpectedDate
+	}
+
+	if date.Weekday().String() == "Saturday" || date.Weekday().String() == "Sunday" {
+		return nil, errWeekendDate
+	}
+
+	p, ok := sar.TimeSeriesDaily[date]
+	if !ok {
+		return nil, errDateDoesNotExist
+	}
 
 	s.repo.Store(key(ticker, date), p)
 
