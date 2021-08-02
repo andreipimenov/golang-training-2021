@@ -65,7 +65,10 @@ func (s *Service) GetPrice(ticker string, date time.Time) (*model.Price, error) 
 		return nil, err
 	}
 
-	p := sar[date]
+	p, ok := sar[date]
+	if !ok {
+		return nil, fmt.Errorf("cant find date")
+	}
 
 	s.repo.Store(key(ticker, date), p)
 
