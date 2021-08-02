@@ -25,10 +25,10 @@ func (s *stockAPIResponse) UnmarshalJSON(raw []byte) error {
 	}
 
 	//if there error from API
-	errAPI, ok := i["Error Message"].(string)
-	if ok {
-		return fmt.Errorf("error from API: %v", errAPI)
-	}
+	//errAPI, ok := i["Error Message"].(string)
+	//if ok {
+	//	return fmt.Errorf("error from API: %v", errAPI)
+	//}
 
 	tsd, ok := i["Time Series (Daily)"].(map[string]interface{})
 	if !ok {
