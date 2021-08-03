@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/andreipimenov/golang-training-2021/internal/model"
@@ -13,6 +14,13 @@ var (
 )
 
 type stockAPIResponse map[time.Time]model.Price
+
+type dataModel struct {
+	Open  string `json:"1. open"`
+	High  string `json:"2. high"`
+	Low   string `json:"3. low"`
+	Close string `json:"4. close"`
+}
 
 func (s *stockAPIResponse) UnmarshalJSON(raw []byte) error {
 	if s != nil && *s == nil {
@@ -32,29 +40,23 @@ func (s *stockAPIResponse) UnmarshalJSON(raw []byte) error {
 	for k, v := range tsd {
 		d, err := time.Parse("2006-01-02", k)
 		if err != nil {
+			log.Println(err)
 			return err
 		}
-		x, ok := v.(map[string]interface{})
-		if !ok {
+
+		body, err := json.Marshal(v)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+
+		data := dataModel{}
+		if err := json.Unmarshal(body, &data); err != nil {
+			log.Println(err)
 			return errUnexpectedJSON
 		}
-		open, ok := x["1. open"].(string)
-		if !ok {
-			return errUnexpectedJSON
-		}
-		high, ok := x["2. high"].(string)
-		if !ok {
-			return errUnexpectedJSON
-		}
-		low, ok := x["3. low"].(string)
-		if !ok {
-			return errUnexpectedJSON
-		}
-		close, ok := x["4. close"].(string)
-		if !ok {
-			return errUnexpectedJSON
-		}
-		(*s)[d] = model.Price{Open: open, High: high, Low: low, Close: close}
+
+		(*s)[d] = model.Price{Open: data.Open, High: data.High, Low: data.Low, Close: data.Close}
 	}
 	return nil
 }

@@ -18,20 +18,22 @@ import (
 )
 
 func main() {
-	r := chi.NewRouter()
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	router := chi.NewRouter()
 
 	repo := repository.New()
 	service := service.New(repo)
-	h := handler.New(service)
+	handler := handler.New(service)
 
-	r.Route("/", func(r chi.Router) {
+	router.Route("/", func(r chi.Router) {
 		r.Use(middleware.Logger)
-		r.Method(http.MethodGet, "/price/{ticker}/{date}", h)
+		r.Method(http.MethodGet, "/price/{ticker}/{date}", handler)
 	})
 
 	srv := http.Server{
 		Addr:    ":8080",
-		Handler: r,
+		Handler: router,
 	}
 
 	shutdown := make(chan os.Signal, 1)

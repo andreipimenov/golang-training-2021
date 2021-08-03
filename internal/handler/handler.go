@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -29,13 +30,15 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	d, err := time.Parse("2006-01-02", date)
 	if err != nil {
-		writeResponse(w, http.StatusBadRequest, model.Error{"Bad request"})
+		writeResponse(w, http.StatusBadRequest, model.Error{"Bad request "})
+		log.Println("Bad request ", err)
 		return
 	}
 
 	price, err := h.service.GetPrice(ticker, d)
 	if err != nil {
 		writeResponse(w, http.StatusInternalServerError, model.Error{"Internal server error"})
+		log.Println("Internal server error ", err)
 		return
 	}
 
