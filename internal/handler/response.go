@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"mime"
 	"net/http"
@@ -23,7 +24,7 @@ func writeResponse(w http.ResponseWriter, v interface{}) {
 	}
 
 	if err, ok := v.(error); ok {
-		if badRequest, ok := err.(model.BadRequest); ok {
+		if badRequest := (model.BadRequest{}); errors.As(err, &badRequest) {
 			code = http.StatusBadRequest
 			v = errResponse{badRequest.Msg}
 		} else {
