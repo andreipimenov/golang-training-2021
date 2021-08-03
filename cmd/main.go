@@ -13,15 +13,17 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/andreipimenov/golang-training-2021/internal/handler"
-	"github.com/andreipimenov/golang-training-2021/internal/repository"
+	"github.com/andreipimenov/golang-training-2021/internal/repositories/alphavantage"
+	"github.com/andreipimenov/golang-training-2021/internal/repositories/cache"
 	"github.com/andreipimenov/golang-training-2021/internal/service"
 )
 
 func main() {
 	r := chi.NewRouter()
 
-	repo := repository.New()
-	service := service.New(repo)
+	cache := cache.New()
+	externalAPI := alphavantage.New()
+	service := service.New(cache, externalAPI)
 	h := handler.New(service)
 
 	r.Route("/", func(r chi.Router) {
