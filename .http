@@ -1,4 +1,13 @@
+# Single good request
+GET http://127.0.0.1:8080/price/AAPL/2000-04-03
+
+###
+
 GET http://127.0.0.1:8080/price//2006-01-02
+
+###
+
+GET http://127.0.0.1:8080/price/badticker/2006-01-02
 
 ###
 
@@ -10,7 +19,8 @@ GET http://127.0.0.1:8080/price/AAPL/98
 
 ###
 
-GET http://127.0.0.1:8080/price/AAPL/2000-04-03
+# Weekend
+GET http://127.0.0.1:8080/price/AAPL/2021-08-01
 
 ###
 
