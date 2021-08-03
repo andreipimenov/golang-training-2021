@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -12,16 +13,22 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
+	"github.com/andreipimenov/golang-training-2021/internal/config"
 	"github.com/andreipimenov/golang-training-2021/internal/handler"
 	"github.com/andreipimenov/golang-training-2021/internal/repository"
 	"github.com/andreipimenov/golang-training-2021/internal/service"
 )
 
 func main() {
+	cfg, err := config.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	r := chi.NewRouter()
 
 	repo := repository.New()
-	service := service.New(repo)
+	service := service.New(repo, cfg.ExternalAPIToken)
 	h := handler.New(service)
 
 	r.Route("/", func(r chi.Router) {
@@ -30,7 +37,7 @@ func main() {
 	})
 
 	srv := http.Server{
-		Addr:    ":8080",
+		Addr:    fmt.Sprintf(":%d", cfg.Port),
 		Handler: r,
 	}
 

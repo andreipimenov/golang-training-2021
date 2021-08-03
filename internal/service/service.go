@@ -12,20 +12,21 @@ import (
 
 const (
 	stockAPIFormat = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&outputsize=full&symbol=%s&apikey=%s"
-	apiKey         = "G7X892PR9Q5DC69X"
 )
 
 type Service struct {
 	repo   Repository
 	client HTTPClient
+	apiKey string
 }
 
-func New(repo Repository) *Service {
+func New(repo Repository, apiKey string) *Service {
 	return &Service{
 		repo: repo,
 		client: &http.Client{
 			Timeout: time.Duration(time.Minute),
 		},
+		apiKey: apiKey,
 	}
 }
 
@@ -43,7 +44,7 @@ func (s *Service) GetPrice(ticker string, date time.Time) (*model.Price, error) 
 		return &p, nil
 	}
 
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf(stockAPIFormat, ticker, apiKey), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf(stockAPIFormat, ticker, s.apiKey), nil)
 	if err != nil {
 		return nil, err
 	}
