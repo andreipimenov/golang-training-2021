@@ -24,3 +24,6 @@ Create `secret` directory with `.token` file for external API.
 
 `docker logs stock-service` to get container logs
 
+#### Builder pattern for docker images
+
+![docker](https://user-images.githubusercontent.com/25442973/128024871-ee1bcd2c-07f7-4bb1-87ef-5fe5f3f8e840.png)
