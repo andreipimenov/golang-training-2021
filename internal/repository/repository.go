@@ -14,15 +14,15 @@ func New() *Repository {
 	return &Repository{data: sync.Map{}}
 }
 
-func (r *Repository) Load(key string) (model.Price, bool) {
+func (r *Repository) Load(key string) (model.Ticker, bool) {
 	value, ok := r.data.Load(key)
 	if !ok {
-		return model.Price{}, false
+		return model.Ticker{}, false
 	}
-	p, ok := value.(model.Price)
+	p, ok := value.(model.Ticker)
 	return p, ok
 }
 
-func (r *Repository) Store(key string, value model.Price) {
+func (r *Repository) Store(key string, value model.Ticker) {
 	r.data.Store(key, value)
 }

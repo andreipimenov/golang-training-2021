@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -33,9 +34,15 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if d.Weekday() == time.Sunday || d.Weekday() == time.Saturday {
+		writeResponse(w, http.StatusBadRequest, model.Error{"A day off is specified. The exchange does not work on weekends"})
+		return
+	}
+
 	price, err := h.service.GetPrice(ticker, d)
 	if err != nil {
-		writeResponse(w, http.StatusInternalServerError, model.Error{"Internal server error"})
+		fmt.Println(err)
+		writeResponse(w, http.StatusInternalServerError, model.Error{fmt.Sprintf("%v", err)})
 		return
 	}
 

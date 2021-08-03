@@ -10,16 +10,37 @@ import (
 
 var (
 	errUnexpectedJSON = fmt.Errorf("unexpected json")
+	errInvalidParam   = fmt.Errorf("invalid parameters")
 )
 
-type stockAPIResponse map[time.Time]model.Price
+type stockAPIResponse model.Ticker
 
 func (s *stockAPIResponse) UnmarshalJSON(raw []byte) error {
-	if s != nil && *s == nil {
-		*s = make(map[time.Time]model.Price)
-	}
 	var i map[string]interface{}
 	err := json.Unmarshal(raw, &i)
+	if err != nil {
+		return err
+	}
+	_, ok := i["Error Message"]
+	if ok {
+		return errInvalidParam
+	}
+	metadata, ok := i["Meta Data"].(map[string]interface{})
+	if !ok {
+		return errUnexpectedJSON
+	}
+
+	s.Name, ok = metadata["2. Symbol"].(string)
+	if !ok {
+		return errUnexpectedJSON
+	}
+
+	lastRefreshed, ok := metadata["3. Last Refreshed"].(string)
+	if !ok {
+		return errUnexpectedJSON
+	}
+
+	s.LastRefreshed, err = time.Parse("2006-01-02", lastRefreshed)
 	if err != nil {
 		return err
 	}
@@ -29,6 +50,7 @@ func (s *stockAPIResponse) UnmarshalJSON(raw []byte) error {
 		return errUnexpectedJSON
 	}
 
+	history := make(map[time.Time]model.Price)
 	for k, v := range tsd {
 		d, err := time.Parse("2006-01-02", k)
 		if err != nil {
@@ -54,7 +76,8 @@ func (s *stockAPIResponse) UnmarshalJSON(raw []byte) error {
 		if !ok {
 			return errUnexpectedJSON
 		}
-		(*s)[d] = model.Price{Open: open, High: high, Low: low, Close: close}
+		history[d] = model.Price{Open: open, High: high, Low: low, Close: close}
 	}
+	s.History = history
 	return nil
 }

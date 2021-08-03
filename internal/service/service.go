@@ -30,8 +30,8 @@ func New(repo Repository) *Service {
 }
 
 type Repository interface {
-	Load(string) (model.Price, bool)
-	Store(string, model.Price)
+	Load(string) (model.Ticker, bool)
+	Store(string, model.Ticker)
 }
 
 type HTTPClient interface {
@@ -39,39 +39,49 @@ type HTTPClient interface {
 }
 
 func (s *Service) GetPrice(ticker string, date time.Time) (*model.Price, error) {
-	if p, ok := s.repo.Load(key(ticker, date)); ok {
-		return &p, nil
-	}
 
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf(stockAPIFormat, ticker, apiKey), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := s.client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
+	tickerInfo, ok := s.repo.Load(ticker)
 	var sar stockAPIResponse
-	err = json.Unmarshal(b, &sar)
-	if err != nil {
-		return nil, err
+	if !ok {
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf(stockAPIFormat, ticker, apiKey), nil)
+		if err != nil {
+			return nil, err
+		}
+
+		resp, err := s.client.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		defer resp.Body.Close()
+
+		b, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal(b, &sar)
+		if err != nil {
+			return nil, err
+		}
+
+		tickerInfo.History = sar.History
+		tickerInfo.LastRefreshed = sar.LastRefreshed
+		tickerInfo.Name = sar.Name
+		s.repo.Store(ticker, tickerInfo)
 	}
 
-	p := sar[date]
+	//The information in the API used is updated at the end of the day.
+	//Here we check that the current or future day is not requested
+	if tickerInfo.LastRefreshed.Unix() < date.Unix() {
+		return nil, fmt.Errorf("Predictor mode is under development. The release date is never")
+	}
 
-	s.repo.Store(key(ticker, date), p)
+	//The exchange may not work on some days, for example, on holidays.
+	//Therefore, you need to check whether there is information on the specified date
+	p, ok := tickerInfo.History[date]
+	if !ok {
+		return nil, fmt.Errorf("There is no information on this date")
+	}
 
 	return &p, nil
-}
-
-func key(ticker string, date time.Time) string {
-	return fmt.Sprintf("%s_%s", ticker, date.Format("2006-01-02"))
 }
