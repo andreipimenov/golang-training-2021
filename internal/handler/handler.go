@@ -5,11 +5,13 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/rs/zerolog"
 
 	"github.com/andreipimenov/golang-training-2021/internal/model"
 )
 
 type Handler struct {
+	logger  *zerolog.Logger
 	service Service
 }
 
@@ -17,8 +19,9 @@ type Service interface {
 	GetPrice(string, time.Time) (*model.Price, error)
 }
 
-func New(srv Service) *Handler {
+func New(logger *zerolog.Logger, srv Service) *Handler {
 	return &Handler{
+		logger:  logger,
 		service: srv,
 	}
 }
@@ -29,13 +32,15 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	d, err := time.Parse("2006-01-02", date)
 	if err != nil {
-		writeResponse(w, http.StatusBadRequest, model.Error{"Bad request"})
+		h.logger.Error().Err(err).Msg("Invalid incoming date parameter")
+		writeResponse(w, http.StatusBadRequest, model.Error{Error: "Bad request"})
 		return
 	}
 
 	price, err := h.service.GetPrice(ticker, d)
 	if err != nil {
-		writeResponse(w, http.StatusInternalServerError, model.Error{"Internal server error"})
+		h.logger.Error().Err(err).Msg("GetPrice method error")
+		writeResponse(w, http.StatusInternalServerError, model.Error{Error: "Internal server error"})
 		return
 	}
 

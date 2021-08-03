@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/andreipimenov/golang-training-2021/internal/model"
+	"github.com/rs/zerolog"
 )
 
 const (
@@ -15,14 +16,16 @@ const (
 )
 
 type Service struct {
+	logger *zerolog.Logger
 	repo   Repository
 	client HTTPClient
 	apiKey string
 }
 
-func New(repo Repository, apiKey string) *Service {
+func New(logger *zerolog.Logger, repo Repository, apiKey string) *Service {
 	return &Service{
-		repo: repo,
+		logger: logger,
+		repo:   repo,
 		client: &http.Client{
 			Timeout: time.Duration(time.Minute),
 		},
@@ -40,7 +43,14 @@ type HTTPClient interface {
 }
 
 func (s *Service) GetPrice(ticker string, date time.Time) (*model.Price, error) {
-	if p, ok := s.repo.Load(key(ticker, date)); ok {
+	key := key(ticker, date)
+
+	logger := s.logger.With().
+		Str("cache_key", key).
+		Logger()
+
+	if p, ok := s.repo.Load(key); ok {
+		logger.Info().Msgf("Hit cache")
 		return &p, nil
 	}
 
@@ -66,9 +76,13 @@ func (s *Service) GetPrice(ticker string, date time.Time) (*model.Price, error) 
 		return nil, err
 	}
 
-	p := sar[date]
+	p, ok := sar[date]
+	if !ok {
+		return nil, fmt.Errorf("failed to find price of %s by %s date", ticker, date.String())
+	}
 
-	s.repo.Store(key(ticker, date), p)
+	s.repo.Store(key, p)
+	logger.Info().Msgf("Store to cache")
 
 	return &p, nil
 }
