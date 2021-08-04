@@ -24,6 +24,10 @@ func (s *stockAPIResponse) UnmarshalJSON(raw []byte) error {
 		return err
 	}
 
+	if msg, ok := i["Error Message"].(string); ok {
+		return fmt.Errorf("failed retrieving data from external API: %s", msg)
+	}
+
 	tsd, ok := i["Time Series (Daily)"].(map[string]interface{})
 	if !ok {
 		return errUnexpectedJSON

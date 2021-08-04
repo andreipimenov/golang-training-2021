@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -11,26 +11,37 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/rs/zerolog"
 
+	"github.com/andreipimenov/golang-training-2021/internal/config"
 	"github.com/andreipimenov/golang-training-2021/internal/handler"
 	"github.com/andreipimenov/golang-training-2021/internal/repository"
 	"github.com/andreipimenov/golang-training-2021/internal/service"
 )
 
 func main() {
+	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
+
+	cfg, err := config.New()
+	if err != nil {
+		logger.Fatal().Err(err).Msg("Configuration error")
+	}
+
 	r := chi.NewRouter()
 
 	repo := repository.New()
-	service := service.New(repo)
-	h := handler.New(service)
+	service := service.New(&logger, repo, cfg.ExternalAPIToken)
+	h := handler.New(&logger, service)
 
 	r.Route("/", func(r chi.Router) {
 		r.Use(middleware.Logger)
+		// r.Use(middleware.RequestLogger(&handler.LogFormatter{Logger: &logger}))
+		r.Use(middleware.Recoverer)
 		r.Method(http.MethodGet, "/price/{ticker}/{date}", h)
 	})
 
 	srv := http.Server{
-		Addr:    ":8080",
+		Addr:    fmt.Sprintf(":%d", cfg.Port),
 		Handler: r,
 	}
 
@@ -39,16 +50,16 @@ func main() {
 	defer signal.Stop(shutdown)
 
 	go func() {
-		log.Println("Server is listening on :8080")
+		logger.Info().Msgf("Server is listening on :%d", cfg.Port)
 		err := srv.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
-			log.Fatal(err)
+			logger.Fatal().Err(err).Msg("Server error")
 		}
 	}()
 
 	<-shutdown
 
-	log.Println("Shutdown signal received")
+	logger.Info().Msg("Shutdown signal received")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer func() {
@@ -56,8 +67,8 @@ func main() {
 	}()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal(err)
+		logger.Fatal().Err(err).Msg("Server shutdown error")
 	}
 
-	log.Println("Server stopped gracefully")
+	logger.Info().Msg("Server stopped gracefully")
 }
