@@ -10,6 +10,10 @@ import (
 	"github.com/andreipimenov/golang-training-2021/internal/model"
 )
 
+const (
+	Path = "/price/{ticker}/{date}"
+)
+
 type Handler struct {
 	logger  *zerolog.Logger
 	service Service

@@ -34,10 +34,9 @@ func main() {
 	h := handler.New(&logger, service)
 
 	r.Route("/", func(r chi.Router) {
-		r.Use(middleware.Logger)
-		// r.Use(middleware.RequestLogger(&handler.LogFormatter{Logger: &logger}))
+		r.Use(middleware.RequestLogger(&handler.LogFormatter{Logger: &logger}))
 		r.Use(middleware.Recoverer)
-		r.Method(http.MethodGet, "/price/{ticker}/{date}", h)
+		r.Method(http.MethodGet, handler.Path, h)
 	})
 
 	srv := http.Server{

@@ -8,7 +8,7 @@ build:
 
 .PHONY: test
 test:
-	go test -v ./...
+	go test -v -race -cover ./...
 
 .PHONY: docker-build
 docker-build:
