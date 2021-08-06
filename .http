@@ -2,3 +2,7 @@ GET http://127.0.0.1:8080/price/AAPL/2029-05-02
 
 ###
 GET http://127.0.0.1/price/AAPL/2021-07-26
+
+###
+
+GET https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&outputsize=full&symbol=IBM&apikey=zxczxc
