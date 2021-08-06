@@ -18,7 +18,7 @@ const (
 	invalidTicker  = "ASDASD"
 	ticker         = "AAPL"
 	date           = "2021-07-26"
-	apiKey         = "KCVH80JGUFNYE8L9"
+	apiKey         = "asdasd"
 	invalidApiKey  = ""
 	invalidDate    = "2029-07-26"
 	badURL         = "dsadasd%s%s"
