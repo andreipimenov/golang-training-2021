@@ -18,6 +18,7 @@ func (s *stockAPIResponse) UnmarshalJSON(raw []byte) error {
 	if s != nil && *s == nil {
 		*s = make(map[time.Time]model.Price)
 	}
+
 	var i map[string]interface{}
 	err := json.Unmarshal(raw, &i)
 	if err != nil {
