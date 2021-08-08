@@ -2,6 +2,10 @@ package service_test
 
 import (
 	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -15,21 +19,19 @@ import (
 )
 
 const (
-	ticker           = "AAPL"
-	invalidTicker    = "DIMMUBORGIR"
-	strangeTicker    = "\u007f"
-	date             = "2021-07-26"
-	weekendDate      = "2021-07-25"
-	futureDate       = "2099-01-01"
-	dateLayout       = "2006-01-02"
-	invalidDate      = "2021-07-269999999999"
-	apiFormat        = "http://127.0.0.1:8080/price/%s/%s"
-	validApiKey      = "123123"
-	invalidApiKey    = ""
-	invalidApiKeyMsg = "apikey is invalid or missing"
-	invalidTickerMsg = "failed retrieving data from external API: Invalid API call."
-	futureDateMsg    = "failed to find price of"
-	strangeTickerMsg = "invalid control character in URL"
+	ticker             = "AAPL"
+	validApiKey        = "123123"
+	invalidTicker      = "DIMMUBORGIR"
+	date               = "2021-07-26"
+	weekendDate        = "2021-07-25"
+	futureDate         = "2099-01-01"
+	dateLayout         = "2006-01-02"
+	invalidApiKey      = ""
+	invalidApiKeyMsg   = "apikey is invalid or missing"
+	invalidTickerMsg   = "failed retrieving data from external API: Invalid API call."
+	tooManyRequestsMsg = "failed retrieving data from external API: Thank you"
+	futureDateMsg      = "failed to find price of"
+	emptyPriceMsg      = "failed to find price of"
 )
 
 // Valid AAPL price for 2021-07-26
@@ -40,79 +42,24 @@ var validPrice = model.Price{
 	Close: "148.9900",
 }
 
-// "valid" price for 2021-07-25 (sunday)
-var emptyPrice = model.Price{
-	Open:  "",
-	High:  "",
-	Low:   "",
-	Close: "",
-}
-
 type serviceTestSuite struct {
 	suite.Suite
-	s        *service.Service
-	repoMock *mock.Repository
+	s          *service.Service
+	repoMock   *mock.Repository
+	clientMock *mock.HTTPClient
 }
 
 func (suite *serviceTestSuite) SetupTest() {
 	repo := &mock.Repository{}
-	s := service.New(&zerolog.Logger{}, repo, validApiKey)
+	client := &mock.HTTPClient{}
+	s := service.New(&zerolog.Logger{}, repo, validApiKey, client)
 	suite.s = s
 	suite.repoMock = repo
+	suite.clientMock = client
 }
 
 func TestHandler(t *testing.T) {
 	suite.Run(t, new(serviceTestSuite))
-}
-
-func (suite *serviceTestSuite) TestInvalidApiKey() {
-	suite.s = service.New(&zerolog.Logger{}, suite.repoMock, invalidApiKey)
-
-	d, err := time.Parse(dateLayout, date)
-	suite.NoError(err)
-
-	suite.repoMock.On("Load", key(ticker, d)).Once().Return(model.Price{}, false)
-
-	_, err = suite.s.GetPrice(ticker, d)
-	suite.Assert().Regexp(fmt.Sprintf(".*%v.*", invalidApiKeyMsg), err)
-}
-
-func (suite *serviceTestSuite) TestEmptyPrice() {
-	// dunno if it has any sense...
-	d, err := time.Parse(dateLayout, weekendDate)
-	suite.NoError(err)
-
-	suite.repoMock.On("Load", key(ticker, d)).Once().Return(emptyPrice, true)
-
-	res, err := suite.s.GetPrice(ticker, d)
-	// We'll generate an error only in http_handler in this case
-	suite.NoError(err)
-	suite.Equal(res, &emptyPrice)
-}
-
-func (suite *serviceTestSuite) TestInvalidTicker() {
-	d, err := time.Parse(dateLayout, date)
-	suite.NoError(err)
-
-	suite.repoMock.On("Load", key(invalidTicker, d)).Once().Return(model.Price{}, false)
-
-	_, err = suite.s.GetPrice(invalidTicker, d)
-
-	suite.Error(err)
-	suite.Assert().Regexp(fmt.Sprintf(".*%v.*", invalidTickerMsg), err)
-}
-
-func (suite *serviceTestSuite) TestValidPriceFromAV() {
-	d, err := time.Parse(dateLayout, date)
-	suite.NoError(err)
-
-	suite.repoMock.On("Load", key(ticker, d)).Once().Return(model.Price{}, false)
-	suite.repoMock.On("Store", key(ticker, d), m.Anything).Once().Return(true)
-
-	res, err := suite.s.GetPrice(ticker, d)
-
-	suite.NoError(err)
-	suite.Equal(res, &validPrice)
 }
 
 func (suite *serviceTestSuite) TestValidPriceFromRepo() {
@@ -127,28 +74,114 @@ func (suite *serviceTestSuite) TestValidPriceFromRepo() {
 	suite.Equal(res, &validPrice)
 }
 
+func (suite *serviceTestSuite) TestInvalidApiKey() {
+	d, err := time.Parse(dateLayout, date)
+	suite.NoError(err)
+
+	resp, err := httpRespFromFile("error_api_key.json", 200)
+	suite.NoError(err)
+
+	suite.repoMock.On("Load", key(ticker, d)).Once().Return(model.Price{}, false)
+	suite.repoMock.On("Store", key(ticker, d), m.Anything).Once().Return(true)
+	suite.clientMock.On("Do", m.Anything).Once().Return(resp, nil)
+
+	_, err = suite.s.GetPrice(ticker, d)
+	suite.Assert().Regexp(fmt.Sprintf(".*%v.*", invalidApiKeyMsg), err)
+}
+
+func (suite *serviceTestSuite) TestInvalidTicker() {
+	d, err := time.Parse(dateLayout, date)
+	suite.NoError(err)
+
+	resp, err := httpRespFromFile("error_invalid_api_call.json", 200)
+	suite.NoError(err)
+
+	suite.repoMock.On("Load", key(invalidTicker, d)).Once().Return(model.Price{}, false)
+	suite.repoMock.On("Store", key(ticker, d), m.Anything).Once().Return(true)
+	suite.clientMock.On("Do", m.Anything).Once().Return(resp, nil)
+
+	_, err = suite.s.GetPrice(invalidTicker, d)
+
+	suite.Error(err)
+	suite.Assert().Regexp(fmt.Sprintf(".*%v.*", invalidTickerMsg), err)
+}
+
+func (suite *serviceTestSuite) TestValidPriceFromAV() {
+	d, err := time.Parse(dateLayout, date)
+	suite.NoError(err)
+
+	resp, err := httpRespFromFile("full_response.json", 200)
+	suite.NoError(err)
+
+	suite.repoMock.On("Load", key(ticker, d)).Once().Return(model.Price{}, false)
+	suite.repoMock.On("Store", key(ticker, d), m.Anything).Once().Return(true)
+	suite.clientMock.On("Do", m.Anything).Once().Return(resp, nil)
+
+	res, err := suite.s.GetPrice(ticker, d)
+
+	suite.NoError(err)
+	suite.Equal(res, &validPrice)
+}
+
 func (suite *serviceTestSuite) TestFutureDate() {
 	d, err := time.Parse(dateLayout, futureDate)
 	suite.NoError(err)
 
+	resp, err := httpRespFromFile("full_response.json", 200)
+	suite.NoError(err)
+
 	suite.repoMock.On("Load", key(ticker, d)).Once().Return(model.Price{}, false)
+	suite.repoMock.On("Store", key(ticker, d), m.Anything).Once().Return(true)
+	suite.clientMock.On("Do", m.Anything).Once().Return(resp, nil)
 
 	_, err = suite.s.GetPrice(ticker, d)
 
 	suite.Assert().Regexp(fmt.Sprintf(".*%v.*", futureDateMsg), err)
 }
 
-func (suite *serviceTestSuite) TestUnparsableUrl() {
-	d, err := time.Parse(dateLayout, date)
+func (suite *serviceTestSuite) TestEmptyPriceFromAV() {
+	d, err := time.Parse(dateLayout, weekendDate)
 	suite.NoError(err)
 
-	suite.repoMock.On("Load", key(strangeTicker, d)).Once().Return(model.Price{}, false)
+	resp, err := httpRespFromFile("full_response.json", 200)
+	suite.NoError(err)
 
-	_, err = suite.s.GetPrice(strangeTicker, d)
+	suite.repoMock.On("Load", key(ticker, d)).Once().Return(model.Price{}, false)
+	suite.repoMock.On("Store", key(ticker, d), m.Anything).Once().Return(true)
+	suite.clientMock.On("Do", m.Anything).Once().Return(resp, nil)
 
-	suite.Assert().Regexp(fmt.Sprintf(".*%v.*", strangeTickerMsg), err)
+	_, err = suite.s.GetPrice(ticker, d)
+	suite.Assert().Regexp(fmt.Sprintf(".*%v.*", emptyPriceMsg), err)
+}
+
+func (suite *serviceTestSuite) TestTooManyRequests() {
+	d, err := time.Parse(dateLayout, weekendDate)
+	suite.NoError(err)
+
+	resp, err := httpRespFromFile("error_responses_limit.json", 200)
+	suite.NoError(err)
+
+	suite.repoMock.On("Load", key(ticker, d)).Once().Return(model.Price{}, false)
+	suite.repoMock.On("Store", key(ticker, d), m.Anything).Once().Return(true)
+	suite.clientMock.On("Do", m.Anything).Once().Return(resp, nil)
+
+	_, err = suite.s.GetPrice(ticker, d)
+	suite.Assert().Regexp(fmt.Sprintf(".*%v.*", tooManyRequestsMsg), err)
 }
 
 func key(ticker string, date time.Time) string {
 	return fmt.Sprintf("%s_%s", ticker, date.Format("2006-01-02"))
+}
+
+// httpRespFromFile makes a *http.Response with body containing a data from
+// specified file
+func httpRespFromFile(filename string, respCode int) (*http.Response, error) {
+	res := new(http.Response)
+	res.StatusCode = respCode
+	fileContent, err := os.ReadFile(fmt.Sprintf("testdata/%v", filename))
+	if err != nil {
+		return nil, err
+	}
+	res.Body = io.NopCloser(strings.NewReader(string(fileContent)))
+	return res, err
 }

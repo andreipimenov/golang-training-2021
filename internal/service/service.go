@@ -22,13 +22,11 @@ type Service struct {
 	apiKey string
 }
 
-func New(logger *zerolog.Logger, repo Repository, apiKey string) *Service {
+func New(logger *zerolog.Logger, repo Repository, apiKey string, httpClient HTTPClient) *Service {
 	return &Service{
 		logger: logger,
 		repo:   repo,
-		client: &http.Client{
-			Timeout: time.Duration(time.Minute),
-		},
+		client: httpClient,
 		apiKey: apiKey,
 	}
 }
