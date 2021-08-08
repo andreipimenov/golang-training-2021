@@ -10,11 +10,16 @@ import (
 	"github.com/andreipimenov/golang-training-2021/internal/model"
 )
 
+const (
+	Path = "/price/{ticker}/{date}"
+)
+
 type Handler struct {
 	logger  *zerolog.Logger
 	service Service
 }
 
+//go:generate mockery --output $PWD/internal/mock --outpkg mock --name=Service
 type Service interface {
 	GetPrice(string, time.Time) (*model.Price, error)
 }

@@ -8,7 +8,7 @@ build:
 
 .PHONY: test
 test:
-	go test -v ./...
+	go test -v -race -cover ./...
 
 .PHONY: docker-build
 docker-build:
@@ -28,3 +28,7 @@ docker-run:
 .PHONY: docker-stop
 docker-stop:
 	@docker stop stock-service
+
+.PHONY: gen-mocks
+gen-mocks:
+	@docker run -v `pwd`:/src -w /src vektra/mockery:v2.7 --case snake --dir internal --output internal/mock --outpkg mock --all

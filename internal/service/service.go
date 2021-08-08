@@ -50,7 +50,7 @@ func (s *Service) GetPrice(ticker string, date time.Time) (*model.Price, error) 
 		Logger()
 
 	if p, ok := s.repo.Load(key); ok {
-		logger.Info().Msgf("Hit cache")
+		logger.Info().Msg("Hit cache")
 		return &p, nil
 	}
 
@@ -82,7 +82,7 @@ func (s *Service) GetPrice(ticker string, date time.Time) (*model.Price, error) 
 	}
 
 	s.repo.Store(key, p)
-	logger.Info().Msgf("Store to cache")
+	logger.Info().Msg("Store to cache")
 
 	return &p, nil
 }
