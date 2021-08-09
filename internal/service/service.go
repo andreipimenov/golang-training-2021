@@ -22,13 +22,11 @@ type Service struct {
 	apiKey string
 }
 
-func New(logger *zerolog.Logger, repo Repository, apiKey string) *Service {
+func New(logger *zerolog.Logger, repo Repository, apiKey string, client HTTPClient) *Service {
 	return &Service{
 		logger: logger,
 		repo:   repo,
-		client: &http.Client{
-			Timeout: time.Duration(time.Minute),
-		},
+		client: client,
 		apiKey: apiKey,
 	}
 }
@@ -43,7 +41,7 @@ type HTTPClient interface {
 }
 
 func (s *Service) GetPrice(ticker string, date time.Time) (*model.Price, error) {
-	key := key(ticker, date)
+	key := Key(ticker, date)
 
 	logger := s.logger.With().
 		Str("cache_key", key).
@@ -87,6 +85,6 @@ func (s *Service) GetPrice(ticker string, date time.Time) (*model.Price, error) 
 	return &p, nil
 }
 
-func key(ticker string, date time.Time) string {
+func Key(ticker string, date time.Time) string {
 	return fmt.Sprintf("%s_%s", ticker, date.Format("2006-01-02"))
 }

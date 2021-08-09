@@ -1,3 +1,13 @@
+.PHONY: gen
+gen: gen-mocks
+	go generate gen/gen.go
+
+.PHONY: test/cover
+test/cover:
+	go test -v -coverprofile=coverage.out ./... && \
+    go tool cover -func=coverage.out && \
+    go tool cover -html=coverage.out -o coverage.html
+
 .PHONY: run
 run:
 	@export EXTERNAL_API_TOKEN=.token && go run cmd/*.go

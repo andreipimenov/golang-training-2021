@@ -19,7 +19,6 @@ type Handler struct {
 	service Service
 }
 
-//go:generate mockery --output $PWD/internal/mock --outpkg mock --name=Service
 type Service interface {
 	GetPrice(string, time.Time) (*model.Price, error)
 }
