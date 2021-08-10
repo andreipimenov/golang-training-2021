@@ -59,3 +59,5 @@ Update number of replicas
 ```
 docker service update --replicas=3 xxx_stock
 ```
+
+![replicas](https://user-images.githubusercontent.com/25442973/128883081-4771b174-4549-471e-a50c-717b01c384c2.png)
