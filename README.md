@@ -61,3 +61,6 @@ docker service update --replicas=3 xxx_stock
 ```
 
 ![replicas](https://user-images.githubusercontent.com/25442973/128883081-4771b174-4549-471e-a50c-717b01c384c2.png)
+
+![multiple-containers](https://user-images.githubusercontent.com/25442973/128886978-33d93db4-7103-4806-98a6-e69ef496b1cf.png)
+
