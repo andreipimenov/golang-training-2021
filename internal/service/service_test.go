@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -86,7 +87,7 @@ func (suite *serviceTestSuite) TestInvalidApiKey() {
 	suite.clientMock.On("Do", m.Anything).Once().Return(resp, nil)
 
 	_, err = suite.s.GetPrice(ticker, d)
-	suite.Assert().Regexp(fmt.Sprintf(".*%v.*", invalidApiKeyMsg), err)
+	suite.Assert().Regexp(regexp.MustCompile(invalidApiKeyMsg), err)
 }
 
 func (suite *serviceTestSuite) TestInvalidTicker() {
@@ -103,7 +104,7 @@ func (suite *serviceTestSuite) TestInvalidTicker() {
 	_, err = suite.s.GetPrice(invalidTicker, d)
 
 	suite.Error(err)
-	suite.Assert().Regexp(fmt.Sprintf(".*%v.*", invalidTickerMsg), err)
+	suite.Assert().Regexp(regexp.MustCompile(invalidTickerMsg), err)
 }
 
 func (suite *serviceTestSuite) TestValidPriceFromAV() {
@@ -136,7 +137,7 @@ func (suite *serviceTestSuite) TestFutureDate() {
 
 	_, err = suite.s.GetPrice(ticker, d)
 
-	suite.Assert().Regexp(fmt.Sprintf(".*%v.*", futureDateMsg), err)
+	suite.Assert().Regexp(regexp.MustCompile(futureDateMsg), err)
 }
 
 func (suite *serviceTestSuite) TestEmptyPriceFromAV() {
@@ -151,7 +152,7 @@ func (suite *serviceTestSuite) TestEmptyPriceFromAV() {
 	suite.clientMock.On("Do", m.Anything).Once().Return(resp, nil)
 
 	_, err = suite.s.GetPrice(ticker, d)
-	suite.Assert().Regexp(fmt.Sprintf(".*%v.*", emptyPriceMsg), err)
+	suite.Assert().Regexp(regexp.MustCompile(emptyPriceMsg), err)
 }
 
 func (suite *serviceTestSuite) TestTooManyRequests() {
@@ -166,7 +167,7 @@ func (suite *serviceTestSuite) TestTooManyRequests() {
 	suite.clientMock.On("Do", m.Anything).Once().Return(resp, nil)
 
 	_, err = suite.s.GetPrice(ticker, d)
-	suite.Assert().Regexp(fmt.Sprintf(".*%v.*", tooManyRequestsMsg), err)
+	suite.Assert().Regexp(regexp.MustCompile(tooManyRequestsMsg), err)
 }
 
 func key(ticker string, date time.Time) string {
