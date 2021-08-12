@@ -7,8 +7,10 @@ services:
       - 80:8080
     secrets:
       - token
+      - db_conn
     environment:
       EXTERNAL_API_TOKEN: /run/secrets/token
+      DB_CONN_STRING: /run/secrets/db_conn
 
   db:
     image: postgres:12
@@ -22,3 +24,5 @@ services:
 secrets:
   token:
     file: secret/.token
+  db_conn:
+    file: secret/.db_conn
