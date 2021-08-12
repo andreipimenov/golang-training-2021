@@ -43,7 +43,7 @@ type HTTPClient interface {
 }
 
 func (s *Service) GetPrice(ticker string, date time.Time) (*model.Price, error) {
-	key := key(ticker, date)
+	key := Key(ticker, date)
 
 	logger := s.logger.With().
 		Str("cache_key", key).
@@ -87,6 +87,6 @@ func (s *Service) GetPrice(ticker string, date time.Time) (*model.Price, error) 
 	return &p, nil
 }
 
-func key(ticker string, date time.Time) string {
+func Key(ticker string, date time.Time) string {
 	return fmt.Sprintf("%s_%s", ticker, date.Format("2006-01-02"))
 }

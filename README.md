@@ -8,11 +8,9 @@ Create `secret` directory with `.token` file for external API.
 
 ### Make commands
 
-`make build` builds docker images from `Dockerfile`
+`make docker/stack/deploy`
 
-`make run` runs docker container
-
-`make stop` stops running container
+`make docker/stack/rm`
 
 ### Docker
 

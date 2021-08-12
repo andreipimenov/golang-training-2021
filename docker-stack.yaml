@@ -3,14 +3,10 @@ version: "3.7"
 services:
   stock:
     image: stock-service
+    volumes:
+      - ./profiles.yml:/profiles.yml
     ports:
       - 80:8080
-    secrets:
-      - token
-      - db_conn
-    environment:
-      EXTERNAL_API_TOKEN: /run/secrets/token
-      DB_CONN_STRING: /run/secrets/db_conn
 
   db:
     image: postgres:12
@@ -21,8 +17,9 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
 
-secrets:
-  token:
-    file: secret/.token
-  db_conn:
-    file: secret/.db_conn
+  mongo:
+    image: mongo:5.0.2
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+

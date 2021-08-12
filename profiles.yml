@@ -1,0 +1,34 @@
+active: mongo
+profiles:
+  prod:
+    port: 8080
+    external_api_token: ffff
+    db_driver_name: postgres
+    db_conn_string: postgres://postgres:postgres@localhost:5432/backend?sslmode=disable
+  dev:
+    log_level: 0
+    port: 8080
+    external_api_token: ffff
+    repository_type: Db
+    db_driver_name: sqlite3
+    #    db_conn_string: sqlite.db
+    db_conn_string: ":memory:"
+    db_migrations: |
+      CREATE TABLE prices (
+          ticker VARCHAR,
+          price_date VARCHAR,
+          open VARCHAR,
+          high VARCHAR,
+          low VARCHAR,
+          close VARCHAR,
+          PRIMARY KEY(ticker, price_date)
+      );
+  mongo:
+    port: 8080
+    external_api_token: ffff
+    repository_type: Mongo
+    mongo_settings:
+      user: root
+      password: example
+      host: mongo
+      port: 27017
