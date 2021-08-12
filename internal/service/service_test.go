@@ -177,7 +177,7 @@ func (s *Suite) TestBadExternalAPIResponse() {
 		{"Response is not a dictionary", "", "7", "cannot unmarshal"},
 	}
 	for _, c := range cases {
-		s.Run("Without "+c.word, func() {
+		s.Run(c.name, func() {
 			s.repoMock.On("Load", repoKey).Once().Return(model.Price{}, false)
 			bodyJSON := c.replacer
 			if c.word != "" {
