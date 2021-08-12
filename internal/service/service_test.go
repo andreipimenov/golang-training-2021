@@ -96,14 +96,14 @@ func (s *Suite) TestUncached() {
 	s.repoMock.On("Store", repoKey, price)
 	gotPrice, err := s.service.GetPrice(ticker, date)
 	s.NoError(err)
-	s.Equal(*gotPrice, price)
+	s.Equal(price, *gotPrice)
 }
 
 func (s *Suite) TestCached() {
 	s.repoMock.On("Load", repoKey).Return(price, true)
 	gotPrice, err := s.service.GetPrice(ticker, date)
 	s.NoError(err)
-	s.Equal(*gotPrice, price)
+	s.Equal(price, *gotPrice)
 }
 
 func (s *Suite) TestErrorFromHTTPClientDo() {
@@ -113,7 +113,7 @@ func (s *Suite) TestErrorFromHTTPClientDo() {
 		On("Do", mock.MatchedBy(checkRequest)).
 		Once().Return(nil, e)
 	_, err := s.service.GetPrice(ticker, date)
-	s.Equal(err, e)
+	s.Equal(e, err)
 }
 
 func (s *Suite) TestNoDataForDate() {
