@@ -22,13 +22,11 @@ type Service struct {
 	apiKey string
 }
 
-func New(logger *zerolog.Logger, repo Repository, apiKey string) *Service {
+func New(logger *zerolog.Logger, client HTTPClient, repo Repository, apiKey string) *Service {
 	return &Service{
 		logger: logger,
 		repo:   repo,
-		client: &http.Client{
-			Timeout: time.Duration(time.Minute),
-		},
+		client: client,
 		apiKey: apiKey,
 	}
 }
@@ -78,7 +76,7 @@ func (s *Service) GetPrice(ticker string, date time.Time) (*model.Price, error) 
 
 	p, ok := sar[date]
 	if !ok {
-		return nil, fmt.Errorf("failed to find price of %s by %s date", ticker, date.String())
+		return nil, fmt.Errorf("failed to find price of %s by %s dateString", ticker, date.String())
 	}
 
 	s.repo.Store(key, p)
