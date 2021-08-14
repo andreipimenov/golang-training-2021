@@ -72,7 +72,7 @@ func (suite *serviceTestSuite) TestValidPriceFromRepo() {
 	res, err := suite.s.GetPrice(ticker, d)
 
 	suite.NoError(err)
-	suite.Equal(res, &validPrice)
+	suite.Equal(&validPrice, res)
 }
 
 func (suite *serviceTestSuite) TestInvalidApiKey() {
@@ -121,7 +121,7 @@ func (suite *serviceTestSuite) TestValidPriceFromAV() {
 	res, err := suite.s.GetPrice(ticker, d)
 
 	suite.NoError(err)
-	suite.Equal(res, &validPrice)
+	suite.Equal(&validPrice, res)
 }
 
 func (suite *serviceTestSuite) TestFutureDate() {
