@@ -9,11 +9,11 @@ EXPOSE 8080
 
 ENTRYPOINT ["/workdir/bin/app"]
 
-# FROM alpine
+FROM alpine
 
-# RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
-# WORKDIR /bin
-# COPY --from=0 /workdir/bin/app .
-# EXPOSE 8080
+RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
+WORKDIR /bin
+COPY --from=0 /workdir/bin/app .
+EXPOSE 8080
 
-# ENTRYPOINT ["app"]
+ENTRYPOINT ["app"]

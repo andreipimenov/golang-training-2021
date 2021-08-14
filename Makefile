@@ -39,9 +39,6 @@ run-db:
 		-d \
 		-v `pwd`/db:/docker-entrypoint-initdb.d/ \
 		--rm \
-		-p 5432:5432 \
-		--name db \
-		-e POSTGRES_DB=backend \
-		-e POSTGRES_USER=postgres \
-		-e POSTGRES_PASSWORD=postgres \
-		postgres:12
+		-p 27017:27017 \
+		--name db-mongo \
+		mongo

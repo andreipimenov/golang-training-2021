@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"net/http"
 	"os"
@@ -14,6 +13,8 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/lib/pq"
 	"github.com/rs/zerolog"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/andreipimenov/golang-training-2021/internal/config"
 	"github.com/andreipimenov/golang-training-2021/internal/handler"
@@ -31,19 +32,21 @@ func main() {
 
 	r := chi.NewRouter()
 
-	db, err := sql.Open("postgres", cfg.DBConnString)
+	fmt.Println(cfg.DBConnString)
+	clientOptions := options.Client().ApplyURI(cfg.DBConnString)
+	ctx1, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	tmp, err := mongo.Connect(ctx1, clientOptions)
 	if err != nil {
-		logger.Fatal().Err(err).Msg("DB initializing error")
-	}
-	defer db.Close()
-
-	err = db.Ping()
-	if err != nil {
-		logger.Fatal().Err(err).Msg("DB pinging error")
+		logger.Fatal().Err(err).Msg("Error while connecting to Mongo")
 	}
 
+	err = tmp.Ping(ctx1, nil)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("Error while pinging Mongo")
+	}
 	// repo := repository.NewCache()
-	dbRepo := &repository.DB{DB: db}
+	dbRepo := repository.NewClient(tmp)
 	service := service.New(&logger, dbRepo, cfg.ExternalAPIToken)
 	h := handler.New(&logger, service)
 
