@@ -32,7 +32,6 @@ func main() {
 
 	r := chi.NewRouter()
 
-	fmt.Println(cfg.DBConnString)
 	clientOptions := options.Client().ApplyURI(cfg.DBConnString)
 	ctx1, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
