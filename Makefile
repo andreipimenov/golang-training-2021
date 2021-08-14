@@ -37,7 +37,7 @@ gen-mocks:
 run-db:
 	@docker run \
 		-d \
-		-v `pwd`/db:/docker-entrypoint-initdb.d/ \
+		-v `pwd`/db:/db \
 		--rm \
 		-p 27017:27017 \
 		--name db-mongo \

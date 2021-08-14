@@ -15,7 +15,7 @@ services:
   db:
     image: mongo
     volumes:
-      - ./db:/docker-entrypoint-initdb.d/
+      - ./db:/db
 
 secrets:
   token:
