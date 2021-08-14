@@ -13,13 +13,7 @@ services:
       DB_CONN_STRING: /run/secrets/db_conn
 
   db:
-    image: postgres:12
-    volumes:
-      - ./db:/docker-entrypoint-initdb.d/
-    environment:
-      POSTGRES_DB: backend
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+    image: mongo:latest
 
 secrets:
   token:

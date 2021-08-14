@@ -1,38 +1,50 @@
 package repository
 
 import (
-	"database/sql"
+	"context"
 	"strings"
 
 	"github.com/andreipimenov/golang-training-2021/internal/model"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type DB struct {
-	*sql.DB
+	*mongo.Collection
 }
 
-func NewDB(db *sql.DB) *DB {
+func NewDB(db *mongo.Collection) *DB {
 	return &DB{db}
 }
 
 func (db *DB) Load(key string) (model.Price, bool) {
-	var open, high, low, close string
 	ticker, date := splitKey(key)
-	err := db.QueryRow("SELECT open, high, low, close FROM prices WHERE price_date = $1 AND ticker = $2", date, ticker).Scan(&open, &high, &low, &close)
+	filter := bson.D{{Key: "ticker", Value: ticker}, {Key: "price_date", Value: date}}
+
+	var result model.Price
+	err := db.FindOne(context.TODO(), filter).Decode(&result)
 	if err != nil {
 		return model.Price{}, false
 	}
 	return model.Price{
-		Open:  open,
-		High:  high,
-		Low:   low,
-		Close: close,
+		Open:  result.Open,
+		High:  result.High,
+		Low:   result.Low,
+		Close: result.Close,
 	}, true
 }
 
 func (db *DB) Store(key string, value model.Price) {
 	ticker, date := splitKey(key)
-	db.Exec("INSERT INTO prices (ticker, price_date, open, high, low, close) VALUES ($1, $2, $3, $4, $5, $6)", ticker, date, value.Open, value.High, value.Low, value.Close)
+
+	db.InsertOne(context.TODO(), bson.D{
+		{Key: "ticker", Value: ticker},
+		{Key: "price_date", Value: date},
+		{Key: "open", Value: value.Open},
+		{Key: "high", Value: value.High},
+		{Key: "low", Value: value.Low},
+		{Key: "close", Value: value.Close},
+	})
 }
 
 func splitKey(key string) (string, string) {
