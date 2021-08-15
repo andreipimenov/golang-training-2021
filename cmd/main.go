@@ -31,6 +31,8 @@ func main() {
 	}
 
 	r := chi.NewRouter()
+
+	//connect with mongoDB
 	clientOptions := options.Client().ApplyURI(cfg.DBConnString)
 	ctx1, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -38,6 +40,7 @@ func main() {
 	if err != nil {
 		logger.Fatal().Err(err).Msg("Error while connecting to Mongo")
 	}
+	//check if db avaible
 
 	err = tmp.Ping(ctx1, nil)
 	if err != nil {
