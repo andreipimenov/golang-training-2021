@@ -2,8 +2,9 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"net/http"
 	"os"
 	"os/signal"
@@ -31,19 +32,30 @@ func main() {
 
 	r := chi.NewRouter()
 
-	db, err := sql.Open("postgres", cfg.DBConnString)
+	client, err := mongo.NewClient(options.Client().ApplyURI(cfg.DBConnString))
 	if err != nil {
 		logger.Fatal().Err(err).Msg("DB initializing error")
 	}
-	defer db.Close()
 
-	err = db.Ping()
+	err = client.Connect(context.TODO())
+	if err != nil {
+		logger.Fatal().Err(err).Msg("DB initializing error")
+	}
+
+	defer client.Disconnect(context.TODO())
+
+	err = client.Ping(context.TODO(), nil)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("DB pinging error")
 	}
 
 	// repo := repository.NewCache()
-	dbRepo := &repository.DB{DB: db}
+	//dbRepo := &repository.DB{DB: db}
+
+	db := client.Database("backend")
+	dbCollection := db.Collection("marketdata")
+	dbRepo := repository.NewMongoDB(dbCollection)
+
 	service := service.New(&logger, dbRepo, cfg.ExternalAPIToken)
 	h := handler.New(&logger, service)
 
