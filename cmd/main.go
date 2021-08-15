@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"net/http"
 	"os"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-redis/redis/v8"
 	_ "github.com/lib/pq"
 	"github.com/rs/zerolog"
 
@@ -31,19 +31,13 @@ func main() {
 
 	r := chi.NewRouter()
 
-	db, err := sql.Open("postgres", cfg.DBConnString)
-	if err != nil {
-		logger.Fatal().Err(err).Msg("DB initializing error")
-	}
-	defer db.Close()
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     cfg.RedisHost,
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
 
-	err = db.Ping()
-	if err != nil {
-		logger.Fatal().Err(err).Msg("DB pinging error")
-	}
-
-	// repo := repository.NewCache()
-	dbRepo := &repository.DB{DB: db}
+	dbRepo := repository.NewRedisCache(rdb, &logger)
 	service := service.New(&logger, dbRepo, cfg.ExternalAPIToken)
 	h := handler.New(&logger, service)
 
