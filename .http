@@ -1,4 +1,4 @@
 GET http://127.0.0.1:8080/price/AAPL/2021-07-26
 
 ###
-GET http://127.0.0.1/price/AAPL/2021-07-26
+GET http://127.0.0.1:8080/price/AAPL/2021-07-26
