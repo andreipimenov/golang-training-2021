@@ -23,6 +23,7 @@ docker-run:
 		-p 8080:8080 \
 		-v `pwd`/secret:/secret \
 		-e EXTERNAL_API_TOKEN=/secret/.token \
+		-e DB_CONN_STRING=/secret/.db_conn \
 		stock-service
 
 .PHONY: docker-stop

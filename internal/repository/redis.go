@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/andreipimenov/golang-training-2021/internal/model"
 	"github.com/go-redis/cache/v8"
+	"github.com/rs/zerolog"
 	"time"
 )
 
@@ -11,16 +12,8 @@ var ctx = context.Background()
 
 type RedisDB struct {
 	*cache.Cache
+	Logger *zerolog.Logger
 }
-
-/*func NewRedisDB(db *RedisDB) *RedisDB {
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	})
-	return &DB{rdb}
-}*/
 
 func (rdb *RedisDB) Load(key string) (model.Price, bool) {
 	var price model.Price
@@ -39,8 +32,8 @@ func (rdb *RedisDB) Store(key string, value model.Price) {
 		Ctx:   ctx,
 		Key:   key,
 		Value: obj,
-		TTL:   time.Hour,
+		TTL:   time.Minute * 5,
 	}); err != nil {
-		panic(err)
+		rdb.Logger.Error().Err(err)
 	}
 }

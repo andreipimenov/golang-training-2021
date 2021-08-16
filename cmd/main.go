@@ -49,20 +49,7 @@ func main() {
 		LocalCache: cache.NewTinyLFU(1000, time.Minute),
 	})
 
-	//db = red
-	/*db, err := sql.Open("postgres", cfg.RedisPort)
-	if err != nil {
-		logger.Fatal().Err(err).Msg("DB initializing error")
-	}
-	defer db.Close()
-
-	err = db.Ping()
-	if err != nil {
-		logger.Fatal().Err(err).Msg("DB pinging error")
-	}*/
-
-	// repo := repository.NewCache()
-	dbRepo := &repository.RedisDB{cache}
+	dbRepo := &repository.RedisDB{cache, &logger}
 	service := service.New(&logger, dbRepo, cfg.ExternalAPIToken)
 	h := handler.New(&logger, service)
 
