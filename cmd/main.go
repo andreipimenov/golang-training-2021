@@ -34,7 +34,7 @@ func main() {
 
 	ring := redis.NewRing(&redis.RingOptions{
 		Addrs: map[string]string{
-			"server": ":" + cfg.RedisPort,
+			"server": cfg.RedisAddr,
 		},
 	})
 
