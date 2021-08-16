@@ -1,0 +1,36 @@
+version: "3.7"
+
+services:
+  stock:
+    build: .
+    image: stock-service
+    ports:
+      - 80:8080
+    secrets:
+      - token
+      - db_conn
+    environment:
+      EXTERNAL_API_TOKEN: /run/secrets/token
+      DB_CONN_STRING: /run/secrets/db_conn
+
+  # db:
+  #   image: postgres:12
+  #   volumes:
+  #     - ./db:/docker-entrypoint-initdb.d/
+  #   environment:
+  #     POSTGRES_DB: backend
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+
+  mongo:
+    image: mongo:5
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+
+secrets:
+  token:
+    file: secret/.token
+  db_conn:
+    file: secret/.db_conn

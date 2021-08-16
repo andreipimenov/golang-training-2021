@@ -9,5 +9,6 @@ require (
 	github.com/lib/pq v1.10.2
 	github.com/rs/zerolog v1.23.0
 	github.com/stretchr/objx v0.1.1 // indirect
-	github.com/stretchr/testify v1.3.0
+	github.com/stretchr/testify v1.7.0
+	go.mongodb.org/mongo-driver v1.7.1 // indirect
 )
