@@ -4,22 +4,16 @@ services:
   stock:
     image: stock-service
     ports:
-      - 80:8080
+      - 8080:8080
     secrets:
       - token
       - db_conn
     environment:
       EXTERNAL_API_TOKEN: /run/secrets/token
-      DB_CONN_STRING: /run/secrets/db_conn
+      DB_CONN_STRING: /run/secrets/.db_conn
 
   db:
-    image: postgres:12
-    volumes:
-      - ./db:/docker-entrypoint-initdb.d/
-    environment:
-      POSTGRES_DB: backend
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+    image: redis
 
 secrets:
   token:

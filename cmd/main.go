@@ -2,8 +2,9 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
+	"github.com/go-redis/cache/v8"
+	"github.com/go-redis/redis/v8"
 	"net/http"
 	"os"
 	"os/signal"
@@ -31,7 +32,25 @@ func main() {
 
 	r := chi.NewRouter()
 
-	db, err := sql.Open("postgres", cfg.DBConnString)
+	/*rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})*/
+
+	ring := redis.NewRing(&redis.RingOptions{
+		Addrs: map[string]string{
+			"server1": ":" + cfg.RedisPort,
+		},
+	})
+
+	cache := cache.New(&cache.Options{
+		Redis:      ring,
+		LocalCache: cache.NewTinyLFU(1000, time.Minute),
+	})
+
+	//db = red
+	/*db, err := sql.Open("postgres", cfg.RedisPort)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("DB initializing error")
 	}
@@ -40,10 +59,10 @@ func main() {
 	err = db.Ping()
 	if err != nil {
 		logger.Fatal().Err(err).Msg("DB pinging error")
-	}
+	}*/
 
 	// repo := repository.NewCache()
-	dbRepo := &repository.DB{DB: db}
+	dbRepo := &repository.RedisDB{cache}
 	service := service.New(&logger, dbRepo, cfg.ExternalAPIToken)
 	h := handler.New(&logger, service)
 

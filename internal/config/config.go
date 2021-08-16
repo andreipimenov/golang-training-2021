@@ -7,7 +7,7 @@ import (
 type Config struct {
 	Port             int    `env:"PORT" envDefault:"8080"`
 	ExternalAPIToken string `env:"EXTERNAL_API_TOKEN,notEmpty,unset,file"`
-	DBConnString     string `env:"DB_CONN_STRING,notEmpty,unset,file"`
+	RedisPort        string `env:"DB_CONN_STRING,notEmpty,unset,file"`
 }
 
 func New() (*Config, error) {
