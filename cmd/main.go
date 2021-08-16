@@ -32,15 +32,9 @@ func main() {
 
 	r := chi.NewRouter()
 
-	/*rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	})*/
-
 	ring := redis.NewRing(&redis.RingOptions{
 		Addrs: map[string]string{
-			"server1": ":" + cfg.RedisPort,
+			"server": ":" + cfg.RedisPort,
 		},
 	})
 
