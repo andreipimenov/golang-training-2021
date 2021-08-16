@@ -16,13 +16,15 @@ test:
 docker-build:
 	@docker build -t stock-service .
 
+.PHONY: create-net
+create-net:
+	@-docker network create stock-service-net
+
 .PHONY: docker-run
-docker-run:
-	-docker network create stock-service-net
+docker-run: create-net
 	@docker run \
 		--name stock-service \
 		-d \
-		--rm \
 		--net stock-service-net \
 		-p 80:8080 \
 		-v `pwd`/secret:/secret \
@@ -33,7 +35,9 @@ docker-run:
 .PHONY: docker-stop
 docker-stop:
 	@-docker stop stock-service
+	@-docker rm stock-service
 	@-docker stop db
+	@-docker rm db
 	@-docker network rm stock-service-net
 
 .PHONY: gen-mocks
@@ -41,12 +45,10 @@ gen-mocks:
 	@docker run -v `pwd`:/src -w /src vektra/mockery:v2.7 --case snake --dir internal --output internal/mock --outpkg mock --all
 
 .PHONY: run-postgres
-run-postgres:
-	@-docker network create stock-service-net
+run-postgres: create-net
 	@docker run \
 		-d \
 		-v `pwd`/db:/docker-entrypoint-initdb.d/ \
-		--rm \
 		--net stock-service-net \
 		-p 5432:5432 \
 		--name db \
@@ -56,12 +58,10 @@ run-postgres:
 		postgres:12
 
 .PHONY: run-mongo
-run-mongo:
-	@-docker network create stock-service-net
+run-mongo: create-net
 	@docker run \
 		-d \
 		-v `pwd`/db:/docker-entrypoint-initdb.d/ \
-		--rm \
 		--net stock-service-net \
 		-p 27017:27017 \
 		--name db \

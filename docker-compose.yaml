@@ -22,7 +22,7 @@ services:
   #     POSTGRES_USER: postgres
   #     POSTGRES_PASSWORD: postgres
 
-  mongo:
+  db:
     image: mongo:5
     restart: always
     environment:
