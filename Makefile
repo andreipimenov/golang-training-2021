@@ -45,3 +45,13 @@ run-db:
 		-e POSTGRES_USER=postgres \
 		-e POSTGRES_PASSWORD=postgres \
 		postgres:12
+
+.PHONY: run-mongo
+run-mongo:
+	@docker run \
+		-d \
+		-v `pwd`/db:/docker-entrypoint-initdb.d/ \
+		--rm \
+		-p 27017:27017 \
+		--name Mongo \
+		mongo
