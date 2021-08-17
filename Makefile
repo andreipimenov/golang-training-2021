@@ -37,11 +37,7 @@ gen-mocks:
 run-db:
 	@docker run \
 		-d \
-		-v `pwd`/db:/docker-entrypoint-initdb.d/ \
 		--rm \
-		-p 5432:5432 \
+		-p 6379:6379 \
 		--name db \
-		-e POSTGRES_DB=backend \
-		-e POSTGRES_USER=postgres \
-		-e POSTGRES_PASSWORD=postgres \
-		postgres:12
+		redis

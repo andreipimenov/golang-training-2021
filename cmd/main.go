@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"net/http"
 	"os"
@@ -10,15 +9,15 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	_ "github.com/lib/pq"
-	"github.com/rs/zerolog"
-
 	"github.com/andreipimenov/golang-training-2021/internal/config"
 	"github.com/andreipimenov/golang-training-2021/internal/handler"
 	"github.com/andreipimenov/golang-training-2021/internal/repository"
 	"github.com/andreipimenov/golang-training-2021/internal/service"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-redis/redis/v8"
+	_ "github.com/lib/pq"
+	"github.com/rs/zerolog"
 )
 
 func main() {
@@ -28,22 +27,23 @@ func main() {
 	if err != nil {
 		logger.Fatal().Err(err).Msg("Configuration error")
 	}
-
 	r := chi.NewRouter()
 
-	db, err := sql.Open("postgres", cfg.DBConnString)
+	opt, err := redis.ParseURL(cfg.DBConnString)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("DB initializing error")
 	}
-	defer db.Close()
 
-	err = db.Ping()
+	db := redis.NewClient(opt)
+
+	ctx := context.TODO()
+	_, err = db.Ping(ctx).Result()
 	if err != nil {
-		logger.Fatal().Err(err).Msg("DB pinging error")
+		logger.Fatal().Err(err).Msg("DB initializing error")
 	}
 
-	// repo := repository.NewCache()
-	dbRepo := &repository.DB{DB: db}
+	dbRepo := &repository.DB{db, &logger}
+
 	service := service.New(&logger, dbRepo, cfg.ExternalAPIToken)
 	h := handler.New(&logger, service)
 

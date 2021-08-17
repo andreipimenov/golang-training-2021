@@ -1,44 +1,40 @@
 package repository
 
 import (
-	"database/sql"
-	"strings"
+	"context"
+	"encoding/json"
 
 	"github.com/andreipimenov/golang-training-2021/internal/model"
+	"github.com/go-redis/redis/v8"
+	"github.com/rs/zerolog"
 )
 
 type DB struct {
-	*sql.DB
-}
-
-func NewDB(db *sql.DB) *DB {
-	return &DB{db}
+	*redis.Client
+	Logger *zerolog.Logger
 }
 
 func (db *DB) Load(key string) (model.Price, bool) {
-	var open, high, low, close string
-	ticker, date := splitKey(key)
-	err := db.QueryRow("SELECT open, high, low, close FROM prices WHERE price_date = $1 AND ticker = $2", date, ticker).Scan(&open, &high, &low, &close)
-	if err != nil {
-		return model.Price{}, false
+	var price model.Price
+	ctx := context.TODO()
+	val, err := db.Get(ctx, key).Result()
+	err = json.Unmarshal([]byte(val), &price)
+	switch {
+	case err == redis.Nil:
+		return price, false
+	case err != nil:
+		return price, false
+	case val == "":
+		return price, false
 	}
-	return model.Price{
-		Open:  open,
-		High:  high,
-		Low:   low,
-		Close: close,
-	}, true
+	return price, true
 }
 
 func (db *DB) Store(key string, value model.Price) {
-	ticker, date := splitKey(key)
-	db.Exec("INSERT INTO prices (ticker, price_date, open, high, low, close) VALUES ($1, $2, $3, $4, $5, $6)", ticker, date, value.Open, value.High, value.Low, value.Close)
-}
-
-func splitKey(key string) (string, string) {
-	x := strings.Split(key, "_")
-	if len(x) != 2 {
-		return "", ""
+	val, err := json.Marshal(value)
+	if err != nil {
+		db.Logger.Error().Err(err)
 	}
-	return x[0], x[1]
+	ctx := context.TODO()
+	db.Set(ctx, key, val, 0)
 }
