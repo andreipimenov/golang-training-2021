@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"net/http"
 	"os"
@@ -12,7 +11,11 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	_ "github.com/lib/pq"
+
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
+
 	"github.com/rs/zerolog"
 
 	"github.com/andreipimenov/golang-training-2021/internal/config"
@@ -31,19 +34,27 @@ func main() {
 
 	r := chi.NewRouter()
 
-	db, err := sql.Open("postgres", cfg.DBConnString)
+	clientOptions := options.Client().ApplyURI(cfg.DBConnString)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
-		logger.Fatal().Err(err).Msg("DB initializing error")
-	}
-	defer db.Close()
-
-	err = db.Ping()
-	if err != nil {
-		logger.Fatal().Err(err).Msg("DB pinging error")
+		logger.Fatal().Err(err).Msg("DB connection error!")
 	}
 
-	// repo := repository.NewCache()
-	dbRepo := &repository.DB{DB: db}
+	defer func() {
+		if err = client.Disconnect(ctx); err != nil {
+			logger.Fatal().Err(err).Msg("DB was disconnected!")
+		}
+	}()
+
+	if err := client.Ping(ctx, readpref.Primary()); err != nil {
+		logger.Fatal().Err(err).Msg("DB not available")
+	}
+
+	fmt.Println("Successfully connected and pinged!")
+
+	dbRepo := repository.NewClient(client)
 	service := service.New(&logger, dbRepo, cfg.ExternalAPIToken)
 	h := handler.New(&logger, service)
 
@@ -74,7 +85,7 @@ func main() {
 
 	logger.Info().Msg("Shutdown signal received")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Minute)
 	defer func() {
 		cancel()
 	}()
