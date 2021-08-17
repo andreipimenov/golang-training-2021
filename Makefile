@@ -1,6 +1,6 @@
 .PHONY: run
 run:
-	@export EXTERNAL_API_TOKEN=.token && export DB_CONN_STRING=.db_conn && go run cmd/*.go
+	@export EXTERNAL_API_TOKEN=.token && export DB_CONN_STRING=.db_conn && export SECRET=.secret && go run cmd/*.go
 
 .PHONY: build
 build:

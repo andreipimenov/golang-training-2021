@@ -11,27 +11,26 @@ import (
 )
 
 const (
-	Path = "/price/{ticker}/{date}"
+	StockPath = "/price/{ticker}/{date}"
 )
 
-type Handler struct {
+type Stock struct {
 	logger  *zerolog.Logger
-	service Service
+	service StockService
 }
 
-//go:generate mockery --output $PWD/internal/mock --outpkg mock --name=Service
-type Service interface {
+type StockService interface {
 	GetPrice(string, time.Time) (*model.Price, error)
 }
 
-func New(logger *zerolog.Logger, srv Service) *Handler {
-	return &Handler{
+func NewStock(logger *zerolog.Logger, srv StockService) *Stock {
+	return &Stock{
 		logger:  logger,
 		service: srv,
 	}
 }
 
-func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *Stock) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ticker := chi.URLParam(r, "ticker")
 	date := chi.URLParam(r, "date")
 

@@ -1,4 +1,10 @@
 GET http://127.0.0.1:8080/price/AAPL/2021-07-26
+Authorization: Bearer XXX
 
 ###
-GET http://127.0.0.1/price/AAPL/2021-07-26
+POST http://127.0.0.1:8080/auth
+
+{
+    "username": "admin",
+    "password": "admin"
+}

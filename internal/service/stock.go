@@ -15,15 +15,15 @@ const (
 	stockAPIFormat = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&outputsize=full&symbol=%s&apikey=%s"
 )
 
-type Service struct {
+type Stock struct {
 	logger *zerolog.Logger
-	repo   Repository
+	repo   StockRepo
 	client HTTPClient
 	apiKey string
 }
 
-func New(logger *zerolog.Logger, repo Repository, apiKey string) *Service {
-	return &Service{
+func NewStock(logger *zerolog.Logger, repo StockRepo, apiKey string) *Stock {
+	return &Stock{
 		logger: logger,
 		repo:   repo,
 		client: &http.Client{
@@ -33,7 +33,7 @@ func New(logger *zerolog.Logger, repo Repository, apiKey string) *Service {
 	}
 }
 
-type Repository interface {
+type StockRepo interface {
 	Load(string) (model.Price, bool)
 	Store(string, model.Price)
 }
@@ -42,7 +42,7 @@ type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-func (s *Service) GetPrice(ticker string, date time.Time) (*model.Price, error) {
+func (s *Stock) GetPrice(ticker string, date time.Time) (*model.Price, error) {
 	key := key(ticker, date)
 
 	logger := s.logger.With().
