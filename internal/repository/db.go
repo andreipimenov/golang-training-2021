@@ -18,13 +18,16 @@ func (db *DB) Load(key string) (model.Price, bool) {
 	var price model.Price
 	ctx := context.TODO()
 	val, err := db.Get(ctx, key).Result()
-	err = json.Unmarshal([]byte(val), &price)
 	switch {
 	case err == redis.Nil:
 		return price, false
 	case err != nil:
 		return price, false
 	case val == "":
+		return price, false
+	}
+	err = json.Unmarshal([]byte(val), &price)
+	if err != nil {
 		return price, false
 	}
 	return price, true
