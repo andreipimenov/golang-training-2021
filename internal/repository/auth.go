@@ -5,8 +5,9 @@ import (
 	"database/sql"
 	"encoding/hex"
 
-	"github.com/andreipimenov/golang-training-2021/internal/model"
 	"github.com/google/uuid"
+
+	"github.com/andreipimenov/golang-training-2021/internal/model"
 )
 
 type user struct {
@@ -51,6 +52,15 @@ func (db *Auth) SaveToken(userID uuid.UUID, token string) error {
 		return err
 	}
 	return nil
+}
+
+func (db *Auth) GetTokenByUserID(userID uuid.UUID) (string, error) {
+	var token string
+	err := db.QueryRow("SELECT token FROM tokens WHERE user_id = $1", userID).Scan(&token)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
 }
 
 func hash(data string) string {

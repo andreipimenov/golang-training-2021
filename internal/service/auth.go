@@ -3,6 +3,7 @@ package service
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -30,6 +31,7 @@ func NewAuth(logger *zerolog.Logger, repo AuthRepo, secret []byte) *Auth {
 type AuthRepo interface {
 	GetUser(string, string) (*model.User, error)
 	SaveToken(uuid.UUID, string) error
+	GetTokenByUserID(uuid.UUID) (string, error)
 }
 
 func (s *Auth) Authenticate(username string, password string) (string, string, error) {
@@ -50,6 +52,37 @@ func (s *Auth) Authenticate(username string, password string) (string, string, e
 		return "", "", err
 	}
 	return accessToken, refreshToken, nil
+}
+
+func (s *Auth) Refresh(accessToken string, refreshToken string) (string, string, error) {
+	token, err := jwt.ParseString(accessToken, jwt.WithVerify(jwa.HS256, s.secret))
+	if err != nil {
+		return "", "", err
+	}
+	userID, err := uuid.Parse(token.Subject())
+	if err != nil {
+		return "", "", err
+	}
+	storedRefresh, err := s.repo.GetTokenByUserID(userID)
+	if err != nil {
+		return "", "", err
+	}
+	if storedRefresh != refreshToken {
+		return "", "", fmt.Errorf("wrong refresh token")
+	}
+	newAccessToken, err := s.generateAccessToken(userID)
+	if err != nil {
+		return "", "", err
+	}
+	newRefreshToken, err := s.generateRefreshToken()
+	if err != nil {
+		return "", "", err
+	}
+	err = s.repo.SaveToken(userID, newRefreshToken)
+	if err != nil {
+		return "", "", err
+	}
+	return newAccessToken, newRefreshToken, nil
 }
 
 func (s *Auth) generateAccessToken(id uuid.UUID) (string, error) {

@@ -10,28 +10,23 @@ import (
 )
 
 const (
-	AuthPath = "/auth"
+	RefreshPath = "/refresh"
 )
 
-type Auth struct {
+type Refresh struct {
 	logger  *zerolog.Logger
 	service AuthService
 }
 
-type AuthService interface {
-	Authenticate(string, string) (string, string, error)
-	Refresh(string, string) (string, string, error)
-}
-
-func NewAuth(logger *zerolog.Logger, srv AuthService) *Auth {
-	return &Auth{
+func NewRefresh(logger *zerolog.Logger, srv AuthService) *Refresh {
+	return &Refresh{
 		logger:  logger,
 		service: srv,
 	}
 }
 
-func (h *Auth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	req := &model.AuthRequest{}
+func (h *Refresh) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	req := &model.Tokens{}
 
 	err := json.NewDecoder(r.Body).Decode(req)
 	if err != nil {
@@ -40,16 +35,16 @@ func (h *Auth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessToken, refreshToken, err := h.service.Authenticate(req.Username, req.Password)
+	newAccessToken, newRefreshToken, err := h.service.Refresh(req.AccessToken, req.RefreshToken)
 	if err != nil {
-		h.logger.Error().Err(err).Msg("Authentication error")
+		h.logger.Error().Err(err).Msg("Token refreshing error")
 		writeResponse(w, http.StatusForbidden, model.Error{Error: "Forbidden"})
 		return
 	}
 
 	res := &model.Tokens{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		AccessToken:  newAccessToken,
+		RefreshToken: newRefreshToken,
 	}
 
 	writeResponse(w, http.StatusOK, res)

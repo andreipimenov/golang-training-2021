@@ -49,6 +49,7 @@ func main() {
 	authRepo := repository.NewAuth(db)
 	authService := service.NewAuth(&logger, authRepo, []byte(cfg.Secret))
 	authHandler := handler.NewAuth(&logger, authService)
+	refreshHandler := handler.NewRefresh(&logger, authService)
 
 	r.Route("/", func(r chi.Router) {
 		r.Use(middleware.RequestLogger(&handler.LogFormatter{Logger: &logger}))
@@ -56,6 +57,7 @@ func main() {
 		r.Use(handler.JWT([]byte(cfg.Secret)))
 		r.Method(http.MethodGet, handler.StockPath, stockHandler)
 		r.Method(http.MethodPost, handler.AuthPath, authHandler)
+		r.Method(http.MethodPost, handler.RefreshPath, refreshHandler)
 	})
 
 	srv := http.Server{

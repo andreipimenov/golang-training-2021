@@ -6,11 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/andreipimenov/golang-training-2021/internal/model"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/rs/zerolog"
+
+	"github.com/andreipimenov/golang-training-2021/internal/model"
 )
 
 type LogFormatter struct {
@@ -52,7 +53,8 @@ func JWT(secret []byte) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			switch r.URL.Path {
-			case "/auth":
+			case AuthPath:
+			case RefreshPath:
 			default:
 				authHeader := r.Header.Get("Authorization")
 				if len(authHeader) == 0 {
