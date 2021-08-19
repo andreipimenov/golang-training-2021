@@ -36,8 +36,9 @@ func main() {
 	if err != nil {
 		logger.Fatal().Err(err).Msg("DB initializing error")
 	}
-
-	err = client.Connect(context.TODO())
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	err = client.Connect(ctx)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("DB initializing error")
 	}
