@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/andreipimenov/golang-training-2021/12_patterns/02_method_chaining/server"
+	"github.com/andreipimenov/golang-training-2021/13_patterns/02_method_chaining/server"
 )
 
 func ping(w http.ResponseWriter, r *http.Request) {
