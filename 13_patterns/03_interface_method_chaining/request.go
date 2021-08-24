@@ -20,7 +20,7 @@ type request struct {
 	lastError error
 }
 
-func NewRequest() request {
+func NewRequest() Request {
 	return request{}
 }
 
