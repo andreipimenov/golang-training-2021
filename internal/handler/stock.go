@@ -1,13 +1,15 @@
 package handler
 
 import (
-	"net/http"
+	"context"
 	"time"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/andreipimenov/golang-training-2021/internal/model"
+	"github.com/andreipimenov/golang-training-2021/internal/pb"
 )
 
 const (
@@ -15,6 +17,7 @@ const (
 )
 
 type Stock struct {
+	pb.UnimplementedStockServer
 	logger  *zerolog.Logger
 	service StockService
 }
@@ -30,23 +33,23 @@ func NewStock(logger *zerolog.Logger, srv StockService) *Stock {
 	}
 }
 
-func (h *Stock) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ticker := chi.URLParam(r, "ticker")
-	date := chi.URLParam(r, "date")
-
-	d, err := time.Parse("2006-01-02", date)
+func (s *Stock) GetPrice(ctx context.Context, in *pb.GetPriceRequest) (*pb.GetPriceResponse, error) {
+	d, err := time.Parse("2006-01-02", in.Date)
 	if err != nil {
-		h.logger.Error().Err(err).Msg("Invalid incoming date parameter")
-		writeResponse(w, http.StatusBadRequest, model.Error{Error: "Bad request"})
-		return
+		s.logger.Error().Err(err).Msg("Invalid incoming date parameter")
+		return nil, status.Error(codes.InvalidArgument, "Invalid argument")
 	}
 
-	price, err := h.service.GetPrice(ticker, d)
+	price, err := s.service.GetPrice(in.Ticker, d)
 	if err != nil {
-		h.logger.Error().Err(err).Msg("GetPrice method error")
-		writeResponse(w, http.StatusInternalServerError, model.Error{Error: "Internal server error"})
-		return
+		s.logger.Error().Err(err).Msg("GetPrice method error")
+		return nil, status.Error(codes.Internal, "Internal error")
 	}
 
-	writeResponse(w, http.StatusOK, price)
+	return &pb.GetPriceResponse{
+		Open:  price.Open,
+		High:  price.High,
+		Low:   price.Low,
+		Close: price.Close,
+	}, nil
 }

@@ -1,0 +1,60 @@
+syntax = "proto3";
+package pb;
+option go_package = "github.com/andreipimenov/golang-training-2021/internal/pb";
+
+import "google/api/annotations.proto";
+
+service Stock {
+  rpc GetPrice(GetPriceRequest) returns (GetPriceResponse) {
+    option (google.api.http) = {
+      get: "/price/{ticker}/{date}"
+    };
+  }
+}
+
+service Auth {
+  rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse) {
+    option (google.api.http) = {
+      post: "/auth"
+      body: "*"
+    };
+  }
+  rpc Refresh(RefreshRequest) returns (RefreshResponse) {
+    option (google.api.http) = {
+      post: "/refresh"
+      body: "*"
+    };
+  }
+}
+
+message AuthenticateRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message AuthenticateResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+message RefreshRequest {
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+message RefreshResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+message GetPriceRequest {
+  string ticker = 1;
+  string date = 2;
+}
+
+message GetPriceResponse {
+  string open = 1;
+  string high = 2;
+  string low = 3;
+  string close = 4;
+}

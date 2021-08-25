@@ -1,82 +1,46 @@
 package handler
 
 import (
-	"fmt"
-	"net/http"
-	"strings"
-	"time"
+	"context"
 
-	"github.com/go-chi/chi/v5/middleware"
+	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwt"
-	"github.com/rs/zerolog"
-
-	"github.com/andreipimenov/golang-training-2021/internal/model"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
-type LogFormatter struct {
-	*zerolog.Logger
+const (
+	authMethod    = "/pb.Auth/Authenticate"
+	refreshMethod = "/pb.Auth/Refresh"
+)
+
+type AuthMiddleware struct {
+	secret []byte
 }
 
-func (l *LogFormatter) NewLogEntry(r *http.Request) middleware.LogEntry {
-	scheme := "http"
-	if r.TLS != nil {
-		scheme = "https"
+func NewAuthMiddleware(secret []byte) *AuthMiddleware {
+	return &AuthMiddleware{
+		secret: secret,
 	}
-	logger := l.With().
-		Str("req", fmt.Sprintf("%s://%s%s %s", scheme, r.Host, r.RequestURI, r.Proto)).
-		Str("from", r.RemoteAddr).
-		Logger()
-	return &LogEntry{&logger}
 }
 
-type LogEntry struct {
-	*zerolog.Logger
-}
+func (a *AuthMiddleware) AuthFunc(ctx context.Context) (context.Context, error) {
+	method, _ := grpc.Method(ctx)
+	switch method {
+	case authMethod:
+	case refreshMethod:
+	default:
+		tokenString, err := grpc_auth.AuthFromMD(ctx, "bearer")
+		if err != nil {
+			return nil, err
+		}
 
-func (l *LogEntry) Write(status, bytes int, header http.Header, elapsed time.Duration, extra interface{}) {
-	l.Info().
-		Int("status", status).
-		Int("bytes", bytes).
-		Str("elapsed", elapsed.String()).
-		Msg("Request handled")
-}
-
-func (l *LogEntry) Panic(v interface{}, stack []byte) {
-	l.Info().
-		Interface("panic", v).
-		Bytes("stack", stack).
-		Msg("Panic handled")
-}
-
-func JWT(secret []byte) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			switch r.URL.Path {
-			case AuthPath:
-			case RefreshPath:
-			default:
-				authHeader := r.Header.Get("Authorization")
-				if len(authHeader) == 0 {
-					writeResponse(w, http.StatusUnauthorized, model.Error{Error: "Unauthorized"})
-					return
-				}
-				h := strings.SplitN(authHeader, " ", 2)
-				if len(h) != 2 {
-					writeResponse(w, http.StatusUnauthorized, model.Error{Error: "Unauthorized"})
-					return
-				}
-				if strings.ToLower(h[0]) != "bearer" {
-					writeResponse(w, http.StatusUnauthorized, model.Error{Error: "Unauthorized"})
-					return
-				}
-				_, err := jwt.ParseString(h[1], jwt.WithVerify(jwa.HS256, secret), jwt.WithValidate(true))
-				if err != nil {
-					writeResponse(w, http.StatusUnauthorized, model.Error{Error: "Unauthorized"})
-					return
-				}
-			}
-			next.ServeHTTP(w, r)
-		})
+		_, err = jwt.ParseString(tokenString, jwt.WithVerify(jwa.HS256, a.secret), jwt.WithValidate(true))
+		if err != nil {
+			return nil, status.Error(codes.Unauthenticated, "Unauthenticated")
+		}
 	}
+	return ctx, nil
 }

@@ -1,12 +1,13 @@
 package handler
 
 import (
-	"encoding/json"
-	"net/http"
+	"context"
 
 	"github.com/rs/zerolog"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
-	"github.com/andreipimenov/golang-training-2021/internal/model"
+	"github.com/andreipimenov/golang-training-2021/internal/pb"
 )
 
 const (
@@ -14,6 +15,7 @@ const (
 )
 
 type Auth struct {
+	pb.UnimplementedAuthServer
 	logger  *zerolog.Logger
 	service AuthService
 }
@@ -30,27 +32,28 @@ func NewAuth(logger *zerolog.Logger, srv AuthService) *Auth {
 	}
 }
 
-func (h *Auth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	req := &model.AuthRequest{}
-
-	err := json.NewDecoder(r.Body).Decode(req)
+func (a *Auth) Authenticate(ctx context.Context, in *pb.AuthenticateRequest) (*pb.AuthenticateResponse, error) {
+	accessToken, refreshToken, err := a.service.Authenticate(in.Username, in.Password)
 	if err != nil {
-		h.logger.Error().Err(err).Msg("Invalid incoming data")
-		writeResponse(w, http.StatusBadRequest, model.Error{Error: "Bad request"})
-		return
+		a.logger.Error().Err(err).Msg("Authentication error")
+		return nil, status.Error(codes.Unauthenticated, "Invalid credentials")
 	}
 
-	accessToken, refreshToken, err := h.service.Authenticate(req.Username, req.Password)
-	if err != nil {
-		h.logger.Error().Err(err).Msg("Authentication error")
-		writeResponse(w, http.StatusForbidden, model.Error{Error: "Forbidden"})
-		return
-	}
-
-	res := &model.Tokens{
+	return &pb.AuthenticateResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
+	}, nil
+}
+
+func (a *Auth) Refresh(ctx context.Context, in *pb.RefreshRequest) (*pb.RefreshResponse, error) {
+	newAccessToken, newRefreshToken, err := a.service.Refresh(in.AccessToken, in.RefreshToken)
+	if err != nil {
+		a.logger.Error().Err(err).Msg("Token refreshing error")
+		return nil, status.Error(codes.Unauthenticated, "Invalid access and refresh tokens pair")
 	}
 
-	writeResponse(w, http.StatusOK, res)
+	return &pb.RefreshResponse{
+		AccessToken:  newAccessToken,
+		RefreshToken: newRefreshToken,
+	}, nil
 }
