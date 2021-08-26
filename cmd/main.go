@@ -29,8 +29,12 @@ func main() {
 
 	r := chi.NewRouter()
 
+	client := &http.Client{
+		Timeout: time.Duration(time.Minute),
+	}
+
 	repo := repository.New()
-	service := service.New(&logger, repo, cfg.ExternalAPIToken)
+	service := service.New(&logger, repo, client, cfg.ExternalAPIToken)
 	h := handler.New(&logger, service)
 
 	r.Route("/", func(r chi.Router) {
