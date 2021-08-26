@@ -1,60 +1,21 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
-	"github.com/go-chi/chi/v5/middleware"
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwt"
-	"github.com/rs/zerolog"
 
 	"github.com/andreipimenov/golang-training-2021/internal/model"
 )
-
-type LogFormatter struct {
-	*zerolog.Logger
-}
-
-func (l *LogFormatter) NewLogEntry(r *http.Request) middleware.LogEntry {
-	scheme := "http"
-	if r.TLS != nil {
-		scheme = "https"
-	}
-	logger := l.With().
-		Str("req", fmt.Sprintf("%s://%s%s %s", scheme, r.Host, r.RequestURI, r.Proto)).
-		Str("from", r.RemoteAddr).
-		Logger()
-	return &LogEntry{&logger}
-}
-
-type LogEntry struct {
-	*zerolog.Logger
-}
-
-func (l *LogEntry) Write(status, bytes int, header http.Header, elapsed time.Duration, extra interface{}) {
-	l.Info().
-		Int("status", status).
-		Int("bytes", bytes).
-		Str("elapsed", elapsed.String()).
-		Msg("Request handled")
-}
-
-func (l *LogEntry) Panic(v interface{}, stack []byte) {
-	l.Info().
-		Interface("panic", v).
-		Bytes("stack", stack).
-		Msg("Panic handled")
-}
 
 func JWT(secret []byte) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			switch r.URL.Path {
-			case AuthPath:
-			case RefreshPath:
+			case "/auth":
+			case "/refresh":
 			default:
 				authHeader := r.Header.Get("Authorization")
 				if len(authHeader) == 0 {

@@ -1,16 +1,11 @@
 package handler
 
 import (
-	"encoding/json"
-	"net/http"
-
+	"github.com/go-openapi/runtime/middleware"
 	"github.com/rs/zerolog"
 
-	"github.com/andreipimenov/golang-training-2021/internal/model"
-)
-
-const (
-	RefreshPath = "/refresh"
+	"github.com/andreipimenov/golang-training-2021/internal/models"
+	"github.com/andreipimenov/golang-training-2021/internal/restapi/operations/auth"
 )
 
 type Refresh struct {
@@ -25,27 +20,12 @@ func NewRefresh(logger *zerolog.Logger, srv AuthService) *Refresh {
 	}
 }
 
-func (h *Refresh) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	req := &model.Tokens{}
-
-	err := json.NewDecoder(r.Body).Decode(req)
-	if err != nil {
-		h.logger.Error().Err(err).Msg("Invalid incoming data")
-		writeResponse(w, http.StatusBadRequest, model.Error{Error: "Bad request"})
-		return
-	}
-
-	newAccessToken, newRefreshToken, err := h.service.Refresh(req.AccessToken, req.RefreshToken)
+func (h *Refresh) Handle(req auth.RefreshTokenParams) middleware.Responder {
+	newAccessToken, newRefreshToken, err := h.service.Refresh(req.Body.AccessToken, req.Body.RefreshToken)
 	if err != nil {
 		h.logger.Error().Err(err).Msg("Token refreshing error")
-		writeResponse(w, http.StatusForbidden, model.Error{Error: "Forbidden"})
-		return
+		return auth.NewRefreshTokenForbidden().WithPayload(&models.Error{"Forbidden"})
 	}
 
-	res := &model.Tokens{
-		AccessToken:  newAccessToken,
-		RefreshToken: newRefreshToken,
-	}
-
-	writeResponse(w, http.StatusOK, res)
+	return auth.NewRefreshTokenOK().WithPayload(&models.Tokens{AccessToken: newAccessToken, RefreshToken: newRefreshToken})
 }

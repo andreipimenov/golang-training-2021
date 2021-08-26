@@ -1,8 +1,9 @@
 GET http://127.0.0.1:8080/price/AAPL/2021-07-26
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MjkyMTk4MDEsImlhdCI6MTYyOTIxOTIwMSwic3ViIjoiMDYyMmRlYTItZWU3OS00YWE5LTg1NjAtYjNiYTVhMDlmYTI2In0.Wo7VmVKGuxcG4pA5EGBzf2sq377sN5_wSanAgRM8kxU
+Authorization: Bearer XXX
 
 ###
 POST http://127.0.0.1:8080/auth
+Content-Type: application/json
 
 {
     "username": "admin",
@@ -11,8 +12,9 @@ POST http://127.0.0.1:8080/auth
 
 ###
 POST http://127.0.0.1:8080/refresh
+Content-Type: application/json
 
 {
-    "access_token": "XXX",
-    "refresh_token": "XXX"
+    "accessToken": "XXX",
+    "refreshToken": "XXX"
 }

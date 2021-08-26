@@ -1,6 +1,6 @@
 .PHONY: run
 run:
-	@export EXTERNAL_API_TOKEN=.token && export DB_CONN_STRING=.db_conn && export SECRET=.secret && go run cmd/*.go
+	@export EXTERNAL_API_TOKEN=.token && export DB_CONN_STRING=.db_conn && export SECRET=.secret && export PORT=8080 && go run cmd/*.go
 
 .PHONY: build
 build:
@@ -45,3 +45,7 @@ run-db:
 		-e POSTGRES_USER=postgres \
 		-e POSTGRES_PASSWORD=postgres \
 		postgres:12
+
+.PHONY: gen-swagger
+gen-swagger:
+	@docker run --rm -it  --user $(id -u):$(id -g) -e GOPATH=$$HOME/go:/go -v $$HOME:$$HOME -w `pwd` quay.io/goswagger/swagger generate server -f ./api/api.yaml -t ./internal --main-package=../../cmd

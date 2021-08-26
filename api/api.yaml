@@ -1,0 +1,157 @@
+swagger: "2.0"
+info:
+  version: "0.1.0"
+  title: Stock Service
+  description: Service which provides stock prices' historical data
+basePath: /
+schemes:
+  - http
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /price/{ticker}/{date}:
+    get:
+      description: Get stock price
+      summary: getPrice
+      tags:
+        - stock
+      operationId: getPrice
+      deprecated: false
+      produces:
+        - application/json
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          type: string
+          description: Stock's code
+        - name: date
+          in: path
+          required: true
+          type: string
+          format: date
+          description: Date in format YYYY-MM-DD
+      responses:
+        "200":
+          description: Stock price
+          schema:
+            $ref: "#/definitions/Price"
+        "400":
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/Error"
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: "#/definitions/Error"
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: "#/definitions/Error"
+  /auth:
+    post:
+      description: Authenticate user
+      summary: auth
+      tags:
+        - auth
+      operationId: auth
+      deprecated: false
+      produces:
+        - application/json
+      consumes:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          description: ""
+          schema:
+            $ref: "#/definitions/Credentials"
+      responses:
+        "200":
+          description: Returns access and refresh tokens
+          schema:
+            $ref: "#/definitions/Tokens"
+        "400":
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/Error"
+        "403":
+          description: Forbidden
+          schema:
+            $ref: "#/definitions/Error"
+  /refresh:
+    post:
+      description: Refresh access and refresh tokens
+      summary: refreshToken
+      tags:
+        - auth
+      operationId: refreshToken
+      deprecated: false
+      produces:
+        - application/json
+      consumes:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          description: ""
+          schema:
+            $ref: "#/definitions/Tokens"
+      responses:
+        "200":
+          description: Returns new access and refresh tokens
+          schema:
+            $ref: "#/definitions/Tokens"
+        "400":
+          description: Bad Request
+          schema:
+            $ref: "#/definitions/Error"
+        "403":
+          description: Forbidden
+          schema:
+            $ref: "#/definitions/Error"
+definitions:
+  Price:
+    title: Price
+    description: Information about stock's price
+    type: object
+    properties:
+      open:
+        type: string
+      high:
+        type: string
+      low:
+        type: string
+      close:
+        type: string
+  Credentials:
+    title: Credentials
+    description: User's credentials info
+    type: object
+    properties:
+      username:
+        type: string
+      password:
+        type: string
+  Tokens:
+    title: Tokens
+    description: Information about tokens
+    type: object
+    properties:
+      accessToken:
+        type: string
+      refreshToken:
+        type: string
+  Error:
+    title: Error
+    type: object
+    properties:
+      error:
+        type: string
+tags:
+  - name: stock
+  - name: auth
