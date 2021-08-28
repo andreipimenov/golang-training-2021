@@ -33,7 +33,7 @@ func main() {
 
 	ctxDb, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	client, err := mongo.Connect(ctxDb, options.Client().ApplyURI("mongodb://localhost:27017"))
+	client, err := mongo.Connect(ctxDb, options.Client().ApplyURI(cfg.DBConnString))
 	if err != nil {
 		logger.Fatal().Err(err).Msg("Mongo init failed")
 	}
