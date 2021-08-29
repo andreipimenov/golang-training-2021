@@ -1,0 +1,8 @@
+GET http://127.0.0.1:8000/health
+
+###
+GET http://127.0.0.1:8000/api/v1/health
+
+###
+GET http://127.0.0.1:8000/api/v1/hello
+
