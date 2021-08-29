@@ -8,7 +8,7 @@ ab:
 		--net=host \
 		--rm \
 		-v `pwd`/request.json:/etc/request.json \
-		jordi/ab -l -p /etc/request.json -s 60s -k -c 30 -n 10000 http://127.0.0.1:8080/mining
+		jordi/ab -l -p /etc/request.json -s 60s -k -c 60 -n 50000 http://127.0.0.1:8080/mining
 
 .PHONY: pprof-goroutine
 pprof-goroutine:
