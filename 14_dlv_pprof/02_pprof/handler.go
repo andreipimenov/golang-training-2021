@@ -24,11 +24,15 @@ func MiningHandler(difficulty int, timeout time.Duration) http.HandlerFunc {
 			return
 		}
 
-		md := make(chan BlockMetadata)
-		go mineBlock(block, difficulty, md)
+		md := make(chan BlockMetadata, 1)
+		done := make(chan struct{})
+		timeoutTimer := time.NewTimer(timeout)
+		go mineBlock(block, difficulty, md, done)
 
 		select {
 		case v := <-md:
+			timeoutTimer.Stop()
+
 			block.Metadata.Nonce, block.Metadata.Hash = v.Nonce, v.Hash
 
 			res, err := json.Marshal(block)
@@ -41,14 +45,15 @@ func MiningHandler(difficulty int, timeout time.Duration) http.HandlerFunc {
 			w.Write(res)
 			return
 
-		case <-time.After(timeout):
+		case <-timeoutTimer.C:
+			close(done)
 			w.WriteHeader(http.StatusRequestTimeout)
 			return
 		}
 	})
 }
 
-func mineBlock(block Block, difficulty int, md chan<- BlockMetadata) {
+func mineBlock(block Block, difficulty int, md chan<- BlockMetadata, done <-chan struct{}) {
 	prefix := strings.Repeat("0", difficulty)
 	for i := int64(0); ; i++ {
 		block.Metadata.Nonce = i
@@ -57,6 +62,11 @@ func mineBlock(block Block, difficulty int, md chan<- BlockMetadata) {
 			block.Metadata.Hash = hash
 			md <- block.Metadata
 			break
+		}
+		select {
+		case <-done:
+			return
+		default:
 		}
 	}
 }

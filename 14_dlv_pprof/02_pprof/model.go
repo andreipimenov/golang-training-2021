@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"fmt"
+	"strconv"
 )
 
 type Block struct {
@@ -18,6 +20,18 @@ type BlockMetadata struct {
 }
 
 func (t Block) Hash() string {
-	v := sha256.Sum256([]byte(fmt.Sprintf("%s->%s:%d:%d", t.From, t.To, t.Value, t.Metadata.Nonce)))
+	//Sprintf - ~300 rps
+	//strings.Builder - up to 380 rps
+	//bytes.Buffer - up to 402 rps
+	var sb bytes.Buffer
+	sb.WriteString(t.From)
+	sb.WriteString("->")
+	sb.WriteString(t.To)
+	sb.WriteRune(':')
+	sb.WriteString(strconv.Itoa(int(t.Value)))
+	sb.WriteRune(':')
+	sb.WriteString(strconv.Itoa(int(t.Metadata.Nonce)))
+	//v := sha256.Sum256([]byte(sb.String()))
+	v := sha256.Sum256(sb.Bytes())
 	return fmt.Sprintf("%x", v)
 }

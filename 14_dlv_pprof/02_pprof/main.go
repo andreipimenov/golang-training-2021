@@ -12,7 +12,7 @@ import (
 const (
 	port       = 8080
 	difficulty = 5
-	timeout    = time.Second
+	timeout    = 30 * time.Second
 )
 
 func main() {
