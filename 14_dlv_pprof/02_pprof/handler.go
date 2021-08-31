@@ -26,11 +26,13 @@ func MiningHandler(difficulty int, timeout time.Duration) http.HandlerFunc {
 
 		md := make(chan BlockMetadata, 1)
 		done := make(chan struct{})
+		timer := time.NewTimer(timeout)
 
 		go mineBlock(block, difficulty, md, done)
 
 		select {
 		case v := <-md:
+			timer.Stop()
 			block.Metadata.Nonce, block.Metadata.Hash = v.Nonce, v.Hash
 
 			res, err := json.Marshal(block)
@@ -43,7 +45,7 @@ func MiningHandler(difficulty int, timeout time.Duration) http.HandlerFunc {
 			w.Write(res)
 			return
 
-		case <-time.After(timeout):
+		case <-timer.C:
 			close(done)
 			w.WriteHeader(http.StatusRequestTimeout)
 			return
