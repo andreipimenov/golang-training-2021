@@ -1,0 +1,27 @@
+POST http://127.0.0.1:8080/mining
+
+{
+    "from": "alice",
+    "to": "john",
+    "value": 100
+}
+
+###
+
+POST http://127.0.0.1:8080/mining 
+
+{
+    "from": "john",
+    "to": "jake",
+    "value": 25
+}
+
+###
+
+POST http://127.0.0.1:8080/mining 
+
+{
+    "from": "john",
+    "to": "hillary",
+    "value": 90000
+}
