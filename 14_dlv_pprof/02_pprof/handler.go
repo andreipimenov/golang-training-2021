@@ -44,6 +44,7 @@ func MiningHandler(difficulty int, timeout time.Duration) http.HandlerFunc {
 			return
 
 		case <-time.After(timeout):
+			close(done)
 			w.WriteHeader(http.StatusRequestTimeout)
 			return
 		}
