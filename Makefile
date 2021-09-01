@@ -1,6 +1,6 @@
 .PHONY: run
 run:
-	@export EXTERNAL_API_TOKEN=.token && export DB_CONN_STRING=.db_conn && go run cmd/*.go
+	@export EXTERNAL_API_TOKEN=secret/.token && go run cmd/*.go
 
 .PHONY: build
 build:
@@ -22,7 +22,7 @@ docker-run:
 		--rm \
 		-p 80:8080 \
 		-v `pwd`/secret:/secret \
-		-e EXTERNAL_API_TOKEN=/secret/.token \
+		-e EXTERNAL_API_TOKEN=secret/.token \
 		stock-service
 
 .PHONY: docker-stop
@@ -37,11 +37,7 @@ gen-mocks:
 run-db:
 	@docker run \
 		-d \
-		-v `pwd`/db:/docker-entrypoint-initdb.d/ \
 		--rm \
-		-p 5432:5432 \
-		--name db \
-		-e POSTGRES_DB=backend \
-		-e POSTGRES_USER=postgres \
-		-e POSTGRES_PASSWORD=postgres \
-		postgres:12
+		-p 6379:6379 \
+		--name redis \
+		redis
