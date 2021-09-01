@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
+	"github.com/andreipimenov/golang-training-2021/internal/repository"
+	cache2 "github.com/go-redis/cache/v8"
+	"github.com/go-redis/redis/v8"
 	"net/http"
 	"os"
 	"os/signal"
@@ -17,7 +19,6 @@ import (
 
 	"github.com/andreipimenov/golang-training-2021/internal/config"
 	"github.com/andreipimenov/golang-training-2021/internal/handler"
-	"github.com/andreipimenov/golang-training-2021/internal/repository"
 	"github.com/andreipimenov/golang-training-2021/internal/service"
 )
 
@@ -31,20 +32,20 @@ func main() {
 
 	r := chi.NewRouter()
 
-	db, err := sql.Open("postgres", cfg.DBConnString)
-	if err != nil {
-		logger.Fatal().Err(err).Msg("DB initializing error")
-	}
-	defer db.Close()
+	ring := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
 
-	err = db.Ping()
-	if err != nil {
-		logger.Fatal().Err(err).Msg("DB pinging error")
-	}
+	cache := cache2.New(&cache2.Options{
+		Redis:      ring,
+		LocalCache: cache2.NewTinyLFU(500, time.Minute*5),
+	})
 
-	// repo := repository.NewCache()
-	dbRepo := &repository.DB{DB: db}
-	service := service.New(&logger, dbRepo, cfg.ExternalAPIToken)
+	redisRepo := &repository.RedisStore{Cache: cache, Logger: &logger}
+
+	service := service.New(&logger, redisRepo, cfg.ExternalAPIToken)
 	h := handler.New(&logger, service)
 
 	r.Route("/", func(r chi.Router) {
